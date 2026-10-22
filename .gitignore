@@ -35,3 +35,4 @@ db/
 keycloakdb.*
 test-results/
 playwright-report/
+data/invite-links.txt
