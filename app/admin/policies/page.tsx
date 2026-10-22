@@ -39,7 +39,7 @@ export default function AdminPolicies() {
   if (!auth.isAuthenticated) return <div className="sv-callout">Sign in as the realm admin (Dr. Hung) to manage policies.</div>;
   if (!isAdmin) return <div className="sv-callout warn">Forbidden: this page is for the realm admin. (The ORKs enforce the signing; this check is only UX.)</div>;
 
-  const lastError = log.find((l) => l.includes("FAILED"));
+  const lastError = log[0]?.includes("FAILED") ? log[0] : undefined; // newest entry first; clears once a later step succeeds
 
   return (
     <div className="sv-stack">
