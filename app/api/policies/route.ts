@@ -8,6 +8,17 @@ import {
 } from "@/lib/database/policyDb";
 import { bytesToBase64 } from "@/lib/tideSerialization";
 import { labelFromParams } from "@/lib/policies/labels";
+import { authenticate, forbidUnlessAny } from "@/lib/serverAuth";
+
+export const runtime = "nodejs";
+
+// Committed policies are public (every sealing/opening browser needs them). Pending requests and every write
+// need a verified realm-admin token, so nobody else can park junk or overwrite a label.
+async function adminOnly(req: NextRequest): Promise<NextResponse | null> {
+    const auth = await authenticate(req);
+    if (auth instanceof NextResponse) return auth;
+    return forbidUnlessAny(auth, ["tide-realm-admin", "realm-admin"]);
+}
 
 export async function GET(req: NextRequest) {
     try {
@@ -25,6 +36,8 @@ export async function GET(req: NextRequest) {
             return NextResponse.json(serialized);
         }
 
+        const denied = await adminOnly(req);
+        if (denied) return denied;
         const policies = await GetAllPendingPolicies();
         return NextResponse.json(policies);
     } catch (ex) {
@@ -34,6 +47,8 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
+    const denied = await adminOnly(req);
+    if (denied) return denied;
     try {
         const { policyRequest, decision, committed, requestedBy, userVuid } = await req.json();
 

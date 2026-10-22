@@ -18,10 +18,13 @@ export default function AdminPolicies() {
   const isAdmin = auth.tokenRoles.some((r) => r.endsWith("tide-realm-admin"));
 
   const refresh = useCallback(async () => {
-    const [p, c] = await Promise.all([fetch("/api/policies"), fetch("/api/policies?type=committed")]);
+    const [p, c] = await Promise.all([
+      fetch("/api/policies", { headers: { Authorization: `Bearer ${await auth.getToken()}` } }),
+      fetch("/api/policies?type=committed"),
+    ]);
     if (p.ok) setPending(await p.json());
     if (c.ok) setCommitted(((await c.json()) as Committed[]).map((x) => x.label).filter(Boolean) as PolicyLabel[]);
-  }, []);
+  }, [auth]);
 
   useEffect(() => { if (auth.isAuthenticated) void refresh(); }, [auth.isAuthenticated, refresh]);
 

@@ -15,6 +15,7 @@ const ApprovalType = Models.ApprovalType;
 export interface PendingRow { id: string; data: string; commitReady?: boolean; approvedBy?: string[]; deniedBy?: string[] }
 export interface PolicyAuth {
   vuid: string;
+  getToken: () => Promise<string>;
   initializeTideRequest: (r: Models.BaseTideRequest) => Promise<Models.BaseTideRequest>;
   approveTideRequests: (r: { id: string; request: Uint8Array }[]) => Promise<{ id: string; approved?: { request: Uint8Array }; denied?: boolean; pending?: boolean }[]>;
   executeTideRequest: (r: Uint8Array, waitForAll?: boolean) => Promise<Uint8Array[]>;
@@ -24,8 +25,12 @@ export const labelOfPending = (row: PendingRow): PolicyLabel | null => {
   try { return labelFromParams(PolicySignRequest.decode(base64ToBytes(row.data)).getRequestedPolicy().params.entries); } catch { return null; }
 };
 
-async function post(body: unknown) {
-  const res = await fetch("/api/policies", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+async function post(auth: PolicyAuth, body: unknown) {
+  const res = await fetch("/api/policies", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Authorization: `Bearer ${await auth.getToken()}` },
+    body: JSON.stringify(body),
+  });
   if (!res.ok) throw new Error(((await res.json().catch(() => ({}))) as any).error ?? `HTTP ${res.status}`);
 }
 
@@ -51,7 +56,7 @@ export async function createPolicy(label: PolicyLabel, auth: PolicyAuth): Promis
   req.setCustomExpiry(604800);
   req.addForsetiContractToUpload(contract);
   const initialized = await auth.initializeTideRequest(req);
-  await post({ policyRequest: bytesToBase64(initialized.encode()), requestedBy: auth.vuid });
+  await post(auth, { policyRequest: bytesToBase64(initialized.encode()), requestedBy: auth.vuid });
   return contractId;
 }
 
@@ -59,11 +64,11 @@ export async function approvePolicy(row: PendingRow, auth: PolicyAuth): Promise<
   const req = PolicySignRequest.decode(base64ToBytes(row.data));
   const [res] = await auth.approveTideRequests([{ id: row.id, request: req.encode() }]);
   if (res.approved) {
-    await post({ policyRequest: bytesToBase64(res.approved.request), decision: { rejected: false }, userVuid: auth.vuid });
+    await post(auth, { policyRequest: bytesToBase64(res.approved.request), decision: { rejected: false }, userVuid: auth.vuid });
     return "approved";
   }
   if (res.denied) {
-    await post({ policyRequest: bytesToBase64(req.encode()), decision: { rejected: true }, userVuid: auth.vuid });
+    await post(auth, { policyRequest: bytesToBase64(req.encode()), decision: { rejected: true }, userVuid: auth.vuid });
     return "denied";
   }
   return "pending";
@@ -72,5 +77,5 @@ export async function approvePolicy(row: PendingRow, auth: PolicyAuth): Promise<
 export async function commitPolicy(row: PendingRow, auth: PolicyAuth): Promise<void> {
   const req = PolicySignRequest.decode(base64ToBytes(row.data));
   const [signature] = await auth.executeTideRequest(req.encode(), true);
-  await post({ committed: { id: row.id, signature: bytesToBase64(signature) } });
+  await post(auth, { committed: { id: row.id, signature: bytesToBase64(signature) } });
 }

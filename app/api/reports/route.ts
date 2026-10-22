@@ -8,6 +8,8 @@ import { authenticate, forbidUnlessAny } from "@/lib/serverAuth";
 export const runtime = "nodejs";
 
 export async function POST(req: NextRequest) {
+  // Three 64 KB envelopes plus tags fit well inside 256 KB; refuse anything bigger before parsing.
+  if (Number(req.headers.get("content-length") ?? 0) > 256 * 1024) return NextResponse.json({ error: "payload too large" }, { status: 413 });
   const body = await req.json().catch(() => null);
   const v = validateReportBody(body);
   if (!v.ok) return NextResponse.json({ error: v.error }, { status: 400 });
