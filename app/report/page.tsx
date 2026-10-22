@@ -4,7 +4,7 @@ import { Suspense, useState, type FormEvent } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import type { ReportDraft, ReporterIdentity } from '@/lib/vault'
 import { useSession } from '@/components/ui/useSession'
-import { LockIcon, SignInPrompt, SimulatedBadge } from '@/components/ui/Callouts'
+import { Denial, LockIcon, SignInPrompt, SimulatedBadge } from '@/components/ui/Callouts'
 
 const CATEGORIES: { value: ReportDraft['category']; label: string }[] = [
     { value: 'grade-for-favours', label: 'Grades for favours' },
@@ -103,7 +103,7 @@ function ReportForm() {
                     <strong>{session.displayName} does not have the student role.</strong> Only students can file a report. Switch persona to Mai.
                 </div>
             )}
-            {error && <div className="sv-denial" role="alert"><pre className="sv-verbatim">{error}</pre></div>}
+            {error && <Denial reason="error" message={error} />}
 
             <div className="sv-cta-row" style={{ marginTop: 0 }}>
                 <button type="submit" className="sv-btn sv-btn-seal sv-btn-lg" disabled={busy || !isStudent}>
