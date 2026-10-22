@@ -1,6 +1,6 @@
 # SETUP-LIVE: run SealedVoice against real TideCloak (staging ORKs)
 
-For a fresh Linux/macOS machine. Needs: Docker, Node >= 20.9, `curl`, `jq`, `sqlite3` (optional), Chromium or Chrome.
+For a fresh Linux/macOS machine. Needs: Docker, Node 22.18+ (or Node 24+), `curl`, `jq`, `sqlite3` (optional), Chromium or Chrome.
 Order matters: **assign every role before adding admins #2 and #3.** After that every realm change is a quorum change request.
 Ports: the app must run on **:3000** (Tide login only redirects there). TideCloak is on :8080.
 

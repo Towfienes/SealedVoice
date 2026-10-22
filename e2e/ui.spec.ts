@@ -98,7 +98,7 @@ test("US4 UI: Hung's four insider actions show the simulated limits", async ({ p
   await expect(page.getByText("[SIMULATED] Forseti: executor lacks realm role 'identity-guardian'", { exact: true })).toBeVisible();
   await page.getByRole("region", { name: "Attack 3: Add me as investigator", exact: true }).getByRole("button", { name: "Run attack 3", exact: true }).click();
   await expect(page.getByText("HTTP 202", { exact: true })).toBeVisible();
-  await expect(page.getByText("Pending, not granted", { exact: true })).toBeVisible();
+  await expect(page.getByText("Requested, not granted", { exact: true })).toBeVisible();
   await expect(page.getByText("[SIMULATED] Change request parked: grant 'investigator' to dr.hung needs 2 of 3 admins", { exact: true })).toBeVisible();
   await page.getByRole("region", { name: "Attack 4: Bury the report", exact: true }).getByRole("button", { name: "Run attack 4", exact: true }).click();
   await expect(page.getByText("[SIMULATED] Forseti: executor lacks realm role 'council'", { exact: true })).toBeVisible();
