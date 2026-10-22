@@ -2,8 +2,8 @@
 
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
-import { MOCK_PERSONAS, type OpenResult, type ReportRecord, type RoleRequestResult } from '@/lib/vault'
-import { useReports, useSession, switchPersona } from '@/components/ui/useSession'
+import { type OpenResult, type ReportRecord, type RoleRequestResult } from '@/lib/vault'
+import { useReports, useSession } from '@/components/ui/useSession'
 import { Countdown } from '@/components/ui/Countdown'
 import { Denial, Pending, SealIcon, SimulatedBadge } from '@/components/ui/Callouts'
 import { DeskGate } from '@/components/ui/DeskGate'
@@ -40,7 +40,7 @@ function Result<T>({ r, render }: { r: Out<T>; render: (v: T) => React.ReactNode
 }
 
 export default function DeanPage() {
-    const { vault, session, ready } = useSession()
+    const { vault } = useSession()
     const { reports, reload } = useReports()
     const [targetId, setTargetId] = useState<string>('')
     const [busy, setBusy] = useState<number | null>(null)
@@ -54,7 +54,6 @@ export default function DeanPage() {
     }, [reports, targetId])
 
     const target = reports?.find((r) => r.id === targetId)
-    const isHung = session?.displayName === MOCK_PERSONAS.hung.displayName
     const noReport = !target
 
     const [errs, setErrs] = useState<Record<number, string>>({})

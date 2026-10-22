@@ -25,7 +25,7 @@ const MAI: ReporterIdentity = {
 }
 
 function ReportForm() {
-    const { vault, session, ready } = useSession()
+    const { vault, session } = useSession()
     const router = useRouter()
     const params = useSearchParams()
     const delay = Number(params.get('delay')) || undefined
