@@ -24,6 +24,12 @@ export default function HowItWorks() {
                 </p>
             </div>
 
+            <figure className="sv-arch">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src="/brand/architecture.svg" width={1920} height={1080} alt="Architecture: the browser encrypts three envelopes, the app server stores ciphertext only, TideCloak enforces roles and quorum, the ORK network decides every decrypt. The insider is blocked at each path." />
+                <figcaption className="sv-hint"><a href="/brand/architecture.svg" target="_blank" rel="noreferrer">Open the diagram full size</a></figcaption>
+            </figure>
+
             <div className="sv-flow" role="group" aria-label="Architecture: browser, app server, TideCloak, ORK network">
                 <div className="sv-node">
                     <h3>1. Browser</h3>

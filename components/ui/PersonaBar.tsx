@@ -3,7 +3,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { usePathname } from "next/navigation";
 import { MOCK_PERSONAS } from "@/lib/vault";
-import { LockIcon, SimulatedBadge } from "./Callouts";
+import { SimulatedBadge } from "./Callouts";
 import { notifySessionChange, switchPersona, useSession } from "./useSession";
 
 const NAV = [
@@ -36,7 +36,8 @@ export function PersonaBar() {
     <header className="sv-top">
       <div className="sv-top-row">
         <Link href="/" className="sv-brand" aria-label="SealedVoice home">
-          <LockIcon size={20} />
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/brand/logo-mark.svg" width={32} height={32} alt="" className="sv-brand-mark" />
           <span>SealedVoice</span>
         </Link>
 

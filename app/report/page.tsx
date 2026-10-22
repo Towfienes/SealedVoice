@@ -3,6 +3,7 @@
 import { Suspense, useState, type FormEvent } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import type { ReportDraft, ReporterIdentity } from '@/lib/vault'
+import { sealReportWithProgress } from '@/lib/vault/tide'
 import { useSession } from '@/components/ui/useSession'
 import { Denial, LockIcon, SimulatedBadge } from '@/components/ui/Callouts'
 import { DeskGate } from '@/components/ui/DeskGate'
@@ -30,6 +31,7 @@ function ReportForm() {
     const params = useSearchParams()
     const delay = Number(params.get('delay')) || undefined
     const [busy, setBusy] = useState(false)
+    const [step, setStep] = useState<string | null>(null)
     const [error, setError] = useState<string | null>(null)
     const [draft, setDraft] = useState<ReportDraft>({
         title: '', category: 'grade-for-favours', accused: '', description: '', evidence: '',
@@ -43,12 +45,13 @@ function ReportForm() {
         setBusy(true)
         setError(null)
         try {
-            const receipt = await vault.sealReport(draft, MAI, delay ? { councilDelaySec: delay } : undefined)
+            const receipt = await sealReportWithProgress(vault, draft, MAI, delay ? { councilDelaySec: delay } : undefined, setStep)
             try { localStorage.setItem(`sv-receipt:${receipt.reportId}`, JSON.stringify(receipt)) } catch { /* private mode */ }
             router.push(`/receipt?id=${encodeURIComponent(receipt.reportId)}`)
         } catch (err) {
             setError(err instanceof Error ? err.message : String(err))
             setBusy(false)
+            setStep(null)
         }
     }
 
@@ -102,9 +105,10 @@ function ReportForm() {
 
             <div className="sv-cta-row" style={{ marginTop: 0 }}>
                 <button type="submit" className="sv-btn sv-btn-seal sv-btn-lg" disabled={busy || !isStudent} aria-busy={busy}>
-                    {busy ? <BusyLabel label={vault.mode === 'tide' ? 'Encrypting 3 envelopes, waiting for Tide…' : 'Sealing in your browser (simulated)…'} /> : <><LockIcon /> Seal and send</>}
+                    {busy ? <BusyLabel label={step ?? (vault.mode === 'tide' ? 'Waiting for Tide enclave…' : 'Sealing in your browser (simulated)…')} /> : <><LockIcon /> Seal and send</>}
                 </button>
                 <SimulatedBadge />
+                <span className="sv-sr" role="status">{step ?? ''}</span>
             </div>
         </form>
     )
