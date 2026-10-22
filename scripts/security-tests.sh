@@ -7,11 +7,24 @@
 # Usage
 #   ./scripts/security-tests.sh                       # http://localhost:3000
 #   BASE=http://localhost:3000 ./scripts/security-tests.sh
-#   MAI_TOKEN=... INVESTIGATOR_TOKEN=... HUNG_TOKEN=... ./scripts/security-tests.sh
+#   MAI_TOKEN=... INVESTIGATOR_TOKEN=... MINH_TOKEN=... HUNG_TOKEN=... ./scripts/security-tests.sh
 #
-# Forged-token checks need no credentials. Positive checks need real tokens: log in as
-# mai / council (Inspector Lan) / admin (Dr. Hung) and copy the access token from DevTools.
-# Time-lock-before-unlock is verified in the browser (the ORK decrypts client-side); see docs/TRUST-MODEL.md.
+# Forged-token checks need no credentials. Role checks need REAL tokens, one per Tide user:
+#   MAI_TOKEN           Tide user `mai`     (Mai, role student)
+#   INVESTIGATOR_TOKEN  Tide user `council` (Inspector Lan, role investigator; the username stays `council`)
+#   MINH_TOKEN          Tide user `minh`    (Guardian Minh, roles identity-guardian + council)
+#   HUNG_TOKEN          Tide user `admin`   (Dr. Hung, realm admin, no data roles)
+#
+# How to get a token (Tide login only redirects to :3000, so use the running app):
+#   1. Open that persona's own browser profile:  bash scripts/open-persona.sh <mai|lan|minh|hung>
+#      and sign in at http://localhost:3000.
+#   2. DevTools (F12) -> Network -> click any request to /api/... (e.g. open /investigator, which calls
+#      /api/reports) -> Headers -> Request Headers -> `authorization: Bearer eyJ...`.
+#   3. Copy everything AFTER "Bearer " (the three dot-separated parts). Tokens expire in minutes: copy right before running.
+#   4. Run, e.g.:  MAI_TOKEN='eyJ...' INVESTIGATOR_TOKEN='eyJ...' MINH_TOKEN='eyJ...' HUNG_TOKEN='eyJ...' \
+#                     bash scripts/security-tests.sh
+# Never paste tokens into a file or commit them.
+# Time-lock-before-unlock is verified in the browser (the ORK decrypts client-side); see /admin/lab and docs/TRUST-MODEL.md.
 #
 # Exit codes: 0 = all checks passed, 1 = at least one security check failed.
 
@@ -20,6 +33,7 @@ set -uo pipefail
 BASE="${BASE:-http://localhost:3000}"
 MAI_TOKEN="${MAI_TOKEN:-}"
 INVESTIGATOR_TOKEN="${INVESTIGATOR_TOKEN:-}"
+MINH_TOKEN="${MINH_TOKEN:-}"
 HUNG_TOKEN="${HUNG_TOKEN:-}"
 PASS=0
 FAIL=0
@@ -167,6 +181,10 @@ head_ "4. Role gate on GET /api/reports (real tokens)"
 if [ -n "$MAI_TOKEN" ]; then
   read -r code body <<<"$(req GET /api/reports "$MAI_TOKEN")"
   expect_status "Mai (student) cannot list reports" "403" "$code" "$body"
+  read -r code body <<<"$(req GET /api/admin/db-dump "$MAI_TOKEN")"
+  expect_status "Mai (student) cannot use the admin db-dump" "403" "$code" "$body"
+  read -r code body <<<"$(req POST /api/admin/grant-role "$MAI_TOKEN" '{"username":"mai","role":"investigator"}')"
+  expect_status "Mai cannot grant herself investigator (TideCloak refuses a non-admin)" "403 401" "$code" "$body"
   read -r code body <<<"$(req GET /api/reports "$(tamper_escalate "$MAI_TOKEN")")"
   expect_status "Mai's token with payload swapped to investigator" "401" "$code" "$body"
 else
@@ -174,11 +192,17 @@ else
 fi
 if [ -n "$INVESTIGATOR_TOKEN" ]; then
   read -r code body <<<"$(req GET /api/reports "$INVESTIGATOR_TOKEN")"
-  expect_status "Inspector Lan (investigator) can list reports" "200" "$code" "$body"
+  expect_status "Inspector Lan (Tide user `council`, investigator) can list reports" "200" "$code" "$body"
   read -r code body <<<"$(req GET /api/admin/db-dump "$INVESTIGATOR_TOKEN")"
   expect_status "investigator cannot use the admin db-dump" "403" "$code" "$body"
 else
   skip "investigator checks need INVESTIGATOR_TOKEN"
+fi
+if [ -n "$MINH_TOKEN" ]; then
+  read -r code body <<<"$(req GET /api/reports "$MINH_TOKEN")"
+  expect_status "Guardian Minh (identity-guardian + council) can list reports" "200" "$code" "$body"
+else
+  skip "guardian checks need MINH_TOKEN"
 fi
 
 # ─── 5. ciphertext at rest ───────────────────────────────────────────────────

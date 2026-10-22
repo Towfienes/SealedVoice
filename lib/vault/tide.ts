@@ -19,7 +19,7 @@ const DISPLAY: Record<string, string> = {
 
 const policyCache = new Map<PolicyLabel, Uint8Array>();
 
-async function policyBytes(label: PolicyLabel): Promise<Uint8Array> {
+export async function policyBytes(label: PolicyLabel): Promise<Uint8Array> {
   const hit = policyCache.get(label);
   if (hit) return hit;
   const res = await fetch("/api/policies?type=committed");
