@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="96" height="96" viewBox="0 0 96 96" role="img" aria-labelledby="title desc">
+  <title id="title">SealedVoice seal</title>
+  <desc id="desc">An original wax-red seal with a paper-white keyhole. A sealed identity, opened only by its designated role.</desc>
+  <path fill="#a8322a" d="M48 5C55 1 61 9 67 10C76 8 81 18 83 24C92 28 90 36 92 43C99 51 91 59 88 65C89 75 79 78 73 83C67 92 58 88 51 92C42 98 36 89 29 87C19 88 17 78 11 73C3 67 7 58 4 51C0 43 8 36 9 29C8 20 19 18 24 12C30 4 40 8 48 5Z"/>
+  <circle cx="48" cy="48" r="31" fill="none" stroke="#8a2822" stroke-width="3"/>
+  <path fill="#fffdf8" d="M48 29C42.5 29 38 33.5 38 39C38 43.3 40.5 46.7 44 48.2L39.5 65H56.5L52 48.2C55.5 46.7 58 43.3 58 39C58 33.5 53.5 29 48 29Z"/>
+</svg>
