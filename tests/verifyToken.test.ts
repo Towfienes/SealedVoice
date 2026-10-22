@@ -37,7 +37,7 @@ let edJwk: Record<string, unknown>;
 let server: Server;
 let jwksUrl: string;
 
-const b64u = (b: Buffer | string) =>
+const b64u = (b: Buffer | string): string =>
   Buffer.from(b).toString("base64").replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
 
 function makeToken(
@@ -68,7 +68,7 @@ function makeToken(
   return `${h}.${p}.${b64u(sig)}`;
 }
 
-function basePayload(over: Record<string, unknown> = {}) {
+function basePayload(over: Record<string, unknown> = {}): Record<string, unknown> {
   const now = Math.floor(Date.now() / 1000);
   return {
     iss: ISSUER,
@@ -77,12 +77,12 @@ function basePayload(over: Record<string, unknown> = {}) {
     sub: "user-123",
     iat: now,
     exp: now + 300,
-    realm_access: { roles: ["bidder"] },
+    realm_access: { roles: ["student"] },
     ...over,
   };
 }
 
-function expectCode(fn: () => Promise<unknown>, code: string) {
+function expectCode(fn: () => Promise<unknown>, code: string): Promise<void> {
   return assert.rejects(fn, (err: unknown) => {
     assert.ok(err instanceof TokenError, `expected TokenError, got ${String(err)}`);
     assert.equal(err.code, code, `expected ${code}, got ${err.code}: ${err.message}`);
@@ -123,7 +123,7 @@ describe("baseline", () => {
     const token = makeToken(basePayload());
     const out = await verifyTideToken(token, jwksUrl, { issuer: ISSUER, audience: AUDIENCE });
     assert.equal(out.payload["sub"], "user-123");
-    assert.deepEqual(realmRoles(out.payload), ["bidder"]);
+    assert.deepEqual(realmRoles(out.payload), ["student"]);
   });
 });
 
@@ -132,7 +132,7 @@ describe("baseline", () => {
 describe("attack: alg none / algorithm confusion", () => {
   test("alg:none with an empty signature is rejected", async () => {
     const h = b64u(JSON.stringify({ alg: "none", typ: "JWT", kid: KID }));
-    const p = b64u(JSON.stringify(basePayload({ realm_access: { roles: ["tender-committee"] } })));
+    const p = b64u(JSON.stringify(basePayload({ realm_access: { roles: ["investigator"] } })));
     await expectCode(
       () => verifyTideToken(`${h}.${p}.`, jwksUrl, { issuer: ISSUER, audience: AUDIENCE }),
       "ALG_NOT_ALLOWED",
@@ -145,7 +145,7 @@ describe("attack: alg none / algorithm confusion", () => {
     const payload = b64u(JSON.stringify(basePayload()));
     const secret = Buffer.from(JSON.stringify(edJwk));
     const sig = b64u(
-      // @ts-expect-error createHmac is imported lazily to keep the fixture obvious
+      // createHmac is imported lazily to keep the fixture obvious.
       (await import("node:crypto")).createHmac("sha256", secret).update(`${header}.${payload}`).digest(),
     );
     await expectCode(
@@ -181,9 +181,9 @@ describe("attack: signature tampering", () => {
   });
 
   test("payload swapped after signing (role escalation) is rejected", async () => {
-    const token = makeToken(basePayload({ realm_access: { roles: ["bidder"] } }));
+    const token = makeToken(basePayload({ realm_access: { roles: ["student"] } }));
     const [h, , s] = token.split(".");
-    const evil = b64u(JSON.stringify(basePayload({ realm_access: { roles: ["tender-committee"] } })));
+    const evil = b64u(JSON.stringify(basePayload({ realm_access: { roles: ["investigator"] } })));
     await expectCode(
       () => verifyTideToken(`${h}.${evil}.${s}`, jwksUrl, { issuer: ISSUER, audience: AUDIENCE }),
       "SIGNATURE_INVALID",
@@ -283,14 +283,14 @@ describe("attack: DPoP downgrade and proof forgery", () => {
 
   function makeProof(
     over: { htm?: string; htu?: string; iat?: number; jwk?: Record<string, unknown>; signWith?: KeyObject } = {},
-  ) {
+  ): string {
     const header = b64u(
       JSON.stringify({ typ: "dpop+jwt", alg: "EdDSA", jwk: over.jwk ?? dpopJwk }),
     );
     const payload = b64u(
       JSON.stringify({
         htm: over.htm ?? "GET",
-        htu: over.htu ?? "http://localhost:3000/api/bids",
+        htu: over.htu ?? "http://localhost:3000/api/reports",
         iat: over.iat ?? Math.floor(Date.now() / 1000),
         jti: "abc",
       }),
@@ -320,7 +320,7 @@ describe("attack: DPoP downgrade and proof forgery", () => {
     const out = await verifyTideToken(token, jwksUrl, {
       issuer: ISSUER,
       audience: AUDIENCE,
-      dpop: { proof: makeProof(), htm: "GET", htu: "http://localhost:3000/api/bids" },
+      dpop: { proof: makeProof(), htm: "GET", htu: "http://localhost:3000/api/reports" },
     });
     assert.equal(out.payload["sub"], "user-123");
   });
@@ -332,7 +332,7 @@ describe("attack: DPoP downgrade and proof forgery", () => {
         verifyTideToken(token, jwksUrl, {
           issuer: ISSUER,
           audience: AUDIENCE,
-          dpop: { proof: makeProof({ htm: "POST" }), htm: "GET", htu: "http://localhost:3000/api/bids" },
+          dpop: { proof: makeProof({ htm: "POST" }), htm: "GET", htu: "http://localhost:3000/api/reports" },
         }),
       "DPOP_INVALID",
     );
@@ -348,7 +348,7 @@ describe("attack: DPoP downgrade and proof forgery", () => {
           dpop: {
             proof: makeProof({ htu: "http://localhost:3000/api/admin" }),
             htm: "GET",
-            htu: "http://localhost:3000/api/bids",
+            htu: "http://localhost:3000/api/reports",
           },
         }),
       "DPOP_INVALID",
@@ -365,7 +365,7 @@ describe("attack: DPoP downgrade and proof forgery", () => {
           dpop: {
             proof: makeProof({ iat: Math.floor(Date.now() / 1000) - 400 }),
             htm: "GET",
-            htu: "http://localhost:3000/api/bids",
+            htu: "http://localhost:3000/api/reports",
           },
         }),
       "DPOP_INVALID",
@@ -384,7 +384,7 @@ describe("attack: DPoP downgrade and proof forgery", () => {
           dpop: {
             proof: makeProof({ jwk: attackerJwk, signWith: attacker.privateKey }),
             htm: "GET",
-            htu: "http://localhost:3000/api/bids",
+            htu: "http://localhost:3000/api/reports",
           },
         }),
       "DPOP_INVALID",
@@ -395,10 +395,10 @@ describe("attack: DPoP downgrade and proof forgery", () => {
 // ─── Attack 5: role escalation via a valid token ────────────────────────────
 
 describe("attack: role escalation with an otherwise valid token", () => {
-  test("bidder token cannot satisfy requireRole(tender-committee)", async () => {
-    const token = makeToken(basePayload({ realm_access: { roles: ["bidder"] } }));
+  test("student token cannot satisfy requireRole(investigator)", async () => {
+    const token = makeToken(basePayload({ realm_access: { roles: ["student"] } }));
     const out = await verifyTideToken(token, jwksUrl, { issuer: ISSUER, audience: AUDIENCE });
-    assert.throws(() => requireRole(out.payload, "tender-committee"), (e: unknown) => {
+    assert.throws(() => requireRole(out.payload, "investigator"), (e: unknown) => {
       return e instanceof TokenError && e.code === "MISSING_ROLE";
     });
   });
@@ -407,18 +407,18 @@ describe("attack: role escalation with an otherwise valid token", () => {
     const token = makeToken(
       basePayload({
         realm_access: { roles: [] },
-        resource_access: { myclient: { roles: ["tender-committee"] } },
+        resource_access: { myclient: { roles: ["investigator"] } },
       }),
     );
     const out = await verifyTideToken(token, jwksUrl, { issuer: ISSUER, audience: AUDIENCE });
     assert.deepEqual(realmRoles(out.payload), []);
-    assert.doesNotThrow(() => requireRole(out.payload, "tender-committee"));
+    assert.doesNotThrow(() => requireRole(out.payload, "investigator"));
   });
 
   test("role substring does not satisfy the check", async () => {
-    const token = makeToken(basePayload({ realm_access: { roles: ["tender-committee-readonly"] } }));
+    const token = makeToken(basePayload({ realm_access: { roles: ["investigator-readonly"] } }));
     const out = await verifyTideToken(token, jwksUrl, { issuer: ISSUER, audience: AUDIENCE });
-    assert.throws(() => requireRole(out.payload, "tender-committee"));
+    assert.throws(() => requireRole(out.payload, "investigator"));
   });
 });
 
@@ -456,7 +456,7 @@ describe("algorithm coverage", () => {
       assert.equal(out.payload["sub"], "user-123");
 
       // And a tampered RSA token must still fail.
-      const evil = b64u(JSON.stringify({ ...basePayload(), realm_access: { roles: ["tender-committee"] } }));
+      const evil = b64u(JSON.stringify({ ...basePayload(), realm_access: { roles: ["investigator"] } }));
       await expectCode(
         () =>
           verifyTideToken(`${h}.${evil}.${b64u(sig)}`, url, {
