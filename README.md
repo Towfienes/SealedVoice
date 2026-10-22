@@ -7,7 +7,7 @@
 
 ## Project overview
 
-**SealedVoice lets a student report misconduct under their verified name, a name no administrator can ever unseal.**
+**SealedVoice is a prototype for verified-name reporting that keeps identity sealed from the accused administrator.**
 
 Built with [TideCloak](https://tide.org/tidecloak?utm_source=github&utm_medium=readme&utm_campaign=unlocked).
 
@@ -21,12 +21,12 @@ The design starts from the named-report requirement described in our [spec](spec
 Mai receives a pseudonymous receipt. Inspector Lan reads the allegation without the identity. Guardian Minh verifies the student separately. A timed council copy provides an escalation path, provided the ciphertext remains available.
 
 ### 4. Why TideCloak matters
-The intended live path encrypts three envelopes in the browser. Forseti on Tide's ORKs enforces separate decryption roles and the council time lock; TideCloak governs role changes through administrator quorum. A backend permission check alone cannot provide that separation.
+**VERIFIED LIVE (lead, 15:32 VN):** TideCloak login for four personas, Tide-issued roles, three Forseti policies committed through the Tide enclave, and QEA pending change requests. **NOT VERIFIED LIVE:** end-to-end seal/decrypt, blocked by network issues. Pending requests do not establish completed quorum approval or ORK enforcement. A one-admin realm can self-approve; 2-of-3 requires three admins.
 
-![Four-layer architecture and insider blocks](docs/architecture.svg)
+![Four-layer architecture and insider blocks](docs/architecture.png)
 
 ### 5. Prototype & storytelling
-The demo follows Mai, Lan, Minh and insider Dr. Hung through submission, investigation, identity denial, a pending self-grant and council escalation. **Mocked mode simulates encryption, roles, quorum and time locks; it proves no Tide security guarantee.** Live enforcement must be verified separately; see [validation status](docs/VALIDATION.md).
+The demo follows Mai, Lan, Minh and insider Dr. Hung through submission, investigation, identity denial, a pending self-grant and council escalation. **Mocked mode simulates encryption, roles, quorum and time locks; it proves no Tide security guarantee.** The video uses mock-mode screen capture; see [validation status](docs/VALIDATION.md) for the live boundary.
 
 ## Demo video
 
@@ -36,7 +36,7 @@ The demo follows Mai, Lan, Minh and insider Dr. Hung through submission, investi
 
 ## Setup
 
-Use Node.js **22.18+** (or Node 24+) and npm. Run commands from the repository root.
+Use Node.js **22.18+** (or Node 24+) and npm. Run commands from the repository root. The following path is the mock walkthrough; no Docker, Tide account, `.env` file or private configuration is needed.
 
 ```bash
 git clone https://github.com/Towfienes/SealedVoice
@@ -62,14 +62,14 @@ The test server runs with `NEXT_PUBLIC_VAULT=mock` on port 3000; stop another de
 
 This path requires Docker with its daemon running, Bash, curl, jq and a Tide subscription email. Review the scripts before running them; local development credentials come from the existing init configuration. Never use those defaults on a public deployment.
 
-1. Start a local development server: `bash scripts/start-tidecloak.sh`.
-2. Run `bash init/tcinit.sh`. Enter your own subscription email and personally review and accept the displayed Tide terms. Complete the enrollment steps the script prints.
-3. Run `bash scripts/setup-personas.sh submit`. In the realm's Tide console, approve and commit the role requests first, then the user requests. Run `bash scripts/setup-personas.sh map`, approve and commit those mappings, then `bash scripts/setup-personas.sh invite`. Invitation links are saved to ignored `data/invite-links.txt`.
-4. Use separate browser profiles for each persona. The Linux Chromium helper is `bash scripts/open-persona.sh <persona> invite`; on macOS, open the saved invitation link manually in the appropriate profile. The four-account licence requires the lead's persona mapping in the spec; do not enroll extra accounts blindly.
-5. Have the lead verify three distinct realm admins and a two-admin approval threshold. Refresh local config with `EXPORT_ONLY=1 bash init/tcinit.sh`. Keep `data/tidecloak.json` and `data/admin-policy.b64` private.
-6. At `/admin/policies`, commit the investigator, guardian and council policies, then use `NEXT_PUBLIC_VAULT=tide npm run dev`. Verify the live checklist in [TRUST-MODEL.md](docs/TRUST-MODEL.md) before claiming the demo is secured by Tide.
+1. Run `npm run init` to start the staging TideCloak container and provision the realm. Enter your own subscription email, personally review and accept the displayed Tide terms, then complete Dr. Hung's enrollment. This script uses `sudo docker`; see the detailed guide below for an existing container.
+2. Run `bash scripts/setup-personas.sh submit`. In the realm's Tide console, approve and commit role requests first, then user requests. Run `bash scripts/setup-personas.sh map`, approve and commit those mappings, then `bash scripts/setup-personas.sh invite`. Invitation links go to ignored `data/invite-links.txt`.
+3. Enroll each persona in a separate browser profile. The Linux helper is `bash scripts/open-persona.sh <persona> invite`; on macOS, open the saved invitation link manually. Follow the four-account mapping below; do not enroll extra accounts.
+4. Start `NEXT_PUBLIC_VAULT=tide npm run dev` on **port 3000**. As Dr. Hung, open `/admin/policies` and create, approve and commit the investigator, guardian and council policies **before adding admins #2 and #3**.
+5. Run `bash scripts/setup-personas.sh admins`, approve and commit those changes in the Tide console, then sign out/in on affected accounts. Have the lead verify three distinct admins and the two-admin threshold. Refresh config with `EXPORT_ONLY=1 bash init/tcinit.sh`; keep both generated data files private.
+6. Run the live checks in [TRUST-MODEL.md](docs/TRUST-MODEL.md). For a production build, set `NEXT_PUBLIC_VAULT=tide` at build time too; switching modes requires restarting/rebuilding. Current login/policy/pending-request evidence does not establish successful seal/decrypt.
 
-Live setup is not yet certified from a fresh clone. It needs interactive enrollment, committed policies and real ORK/QEA checks; see [validation status](docs/VALIDATION.md).
+See [the detailed live setup and four-account mapping](docs/SETUP-LIVE.md). The lead confirmed login, roles, three enclave-committed policies and pending QEA requests; live end-to-end seal/decrypt remains unverified because of network issues. Live setup was not reproduced in the fresh-clone check; see [validation status](docs/VALIDATION.md).
 
 ## Limits
 - Writing style, evidence or contextual details can identify a reporter.
@@ -78,7 +78,7 @@ Live setup is not yet certified from a fresh clone. It needs interactive enrollm
 - The demo targets the **staging ORK network, t=3, n=5**; this is not a production deployment.
 - The browser is the trust boundary. A compromised browser, extension or server-delivered JavaScript can capture plaintext before sealing or after opening.
 - Mock mode stores plaintext locally and its digest is a placeholder, not a cryptographic integrity proof. Do not enter real reports.
-- Bearer-token replay and DPoP proof replay need separate controls; see [attack vectors](docs/ATTACK-VECTORS.md). Live role, tag and quorum enforcement remain unverified until tested.
+- Bearer-token replay and DPoP proof replay need separate controls; see [attack vectors](docs/ATTACK-VECTORS.md). Tide-issued roles and pending QEA requests were observed live; decrypt-role/tag enforcement, council timing and completed quorum approval were not verified end to end.
 - A guardian can disclose identities they legitimately open; colluding administrators and unavailable ORKs remain threats.
 
 ## Credits
