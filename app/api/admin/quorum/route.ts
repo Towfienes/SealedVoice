@@ -1,6 +1,7 @@
 // Reports the REAL quorum of the live realm, so the insider scene never claims "2 of 3" when only one admin exists.
 // Counts the users holding realm-management/tide-realm-admin, using the caller's own bearer token (admin only).
-// Threshold formula from AGENTS.md: max(1, floor(0.7 * N)). TideCloak, not this route, enforces it.
+// Threshold: read from a pending change request when one exists, else the AGENTS.md formula max(1, floor(0.7 * N)).
+// TideCloak, not this route, enforces it.
 import { NextRequest, NextResponse } from "next/server";
 import { authenticate, forbidUnlessAny } from "@/lib/serverAuth";
 import { initTcData, getAuthServerUrl, getRealm } from "@/lib/tidecloakConfig";
@@ -24,7 +25,15 @@ export async function GET(req: NextRequest) {
     const users = await get(`/clients/${rmId}/roles/tide-realm-admin/users`);
     if (!users.ok) return new NextResponse(await users.text(), { status: users.status });
     const names = ((await users.json()) as { username: string }[]).map((u) => u.username);
-    return NextResponse.json({ admins: names.length, usernames: names, ...quorumOf(names.length) });
+    // A parked change request carries TideCloak's own threshold: prefer it over the formula when one exists.
+    let observed: number | null = null;
+    const crs = await get("/iga/change-requests?status=PENDING");
+    if (crs.ok) {
+      const list = (await crs.json().catch(() => [])) as { threshold?: number }[];
+      const ts = Array.isArray(list) ? list.map((c) => Number(c.threshold)).filter((n) => Number.isFinite(n) && n >= 1) : [];
+      if (ts.length) observed = Math.max(...ts);
+    }
+    return NextResponse.json({ usernames: names, ...quorumOf(names.length, observed) });
   } catch (e) {
     return NextResponse.json({ error: String((e as Error)?.message ?? e) }, { status: 502 });
   }

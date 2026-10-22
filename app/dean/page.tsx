@@ -10,7 +10,7 @@ import { DeskGate } from '@/components/ui/DeskGate'
 import { BusyLabel } from '@/components/ui/Spinner'
 import { fmtTime, shorten } from '@/components/ui/format'
 import { useAuth } from '@/hooks/useAuth'
-import { describeQuorum, quorumOf } from '@/lib/quorum'
+import { describeQuorum, type Quorum } from '@/lib/quorum'
 
 type Out<T> = { kind: 'idle' } | { kind: 'done'; value: T }
 
@@ -57,7 +57,7 @@ export default function DeanPage() {
 
     // Real quorum of the live realm (tide mode only). Never claim 2-of-3 unless the realm really has 3 admins.
     const auth = useAuth()
-    const [admins, setAdmins] = useState<number | null>(null)
+    const [quorum, setQuorum] = useState<Quorum | null>(null)
     const [quorumErr, setQuorumErr] = useState<string>('')
     useEffect(() => {
         if (vault.mode !== 'tide' || !auth.isAuthenticated) return
@@ -67,7 +67,7 @@ export default function DeanPage() {
                 const res = await fetch('/api/admin/quorum', { headers: { Authorization: `Bearer ${await auth.getToken()}` } })
                 const body = await res.json().catch(() => ({}))
                 if (!live) return
-                if (res.ok) setAdmins(body.admins)
+                if (res.ok) setQuorum(body as Quorum)
                 else setQuorumErr(`HTTP ${res.status} ${body.error ?? ''}`.trim())
             } catch (e) { if (live) setQuorumErr(e instanceof Error ? e.message : String(e)) }
         })()
@@ -75,10 +75,10 @@ export default function DeanPage() {
     }, [vault.mode, auth.isAuthenticated]) // eslint-disable-line react-hooks/exhaustive-deps
     const quorumNote = vault.mode !== 'tide'
         ? 'SIMULATED: the mock vault pretends the realm has 3 admins and a 2-of-3 quorum.'
-        : admins !== null ? describeQuorum(admins)
+        : quorum ? describeQuorum(quorum)
         : quorumErr ? `Live quorum could not be read (${quorumErr}). Do not assume 2-of-3.` : 'Reading the live quorum…'
     const pendingLabel = vault.mode !== 'tide' ? 'Pending: 2 of 3 admins (simulated)'
-        : admins !== null ? `Pending: ${quorumOf(admins).threshold} of ${admins} admin${admins === 1 ? '' : 's'}` : 'Pending: quorum approval'
+        : quorum ? `Pending: ${quorum.threshold} of ${quorum.admins} admin${quorum.admins === 1 ? '' : 's'}` : 'Pending: quorum approval'
 
     const target = reports?.find((r) => r.id === targetId)
     const noReport = !target
