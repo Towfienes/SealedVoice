@@ -14,11 +14,11 @@
     "test:e2e": "playwright test"
   },
   "dependencies": {
-    "@tidecloak/js": "0.13.21",
-    "@tideorg/js": "0.13.21",
-    "asgard-tide": "0.12.47",
+    "@tidecloak/js": "^0.14.41",
+    "@tideorg/js": "^0.14.29",
+    "asgard-tide": "^0.14.20",
     "better-sqlite3": "^12.11.1",
-    "heimdall-tide": "0.13.21",
+    "heimdall-tide": "^0.14.41",
     "highlight.js": "^11.11.1",
     "next": "16.x",
     "react": "19.x",

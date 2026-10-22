@@ -741,7 +741,7 @@ export default function HomePage() {
             }
 
             const newPolicyRequest = PolicySignRequest.New(new Policy({
-                version: "3",
+                version: "4",
                 modelId: ["PolicyEnabledEncryption:1", "PolicyEnabledDecryption:1"],
                 contractId: forsetiContractId,
                 keyId: vendorId,

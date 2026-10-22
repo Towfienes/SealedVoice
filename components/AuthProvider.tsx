@@ -105,7 +105,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }, []);
 
     const getToken = async (): Promise<string> => {
-        return await IAMService.getToken();
+        return (await IAMService.getToken()) ?? "";
     };
 
     const updateTokenRoles = () => {

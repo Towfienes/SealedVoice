@@ -45,7 +45,7 @@ export async function createPolicy(label: PolicyLabel, auth: PolicyAuth): Promis
     ["RequireTimeLock", spec.requireTimeLock],
   ]);
   const req = PolicySignRequest.New(new Policy({
-    version: "3",
+    version: "4",
     modelId: ["PolicyEnabledEncryption:1", "PolicyEnabledDecryption:1"],
     contractId,
     keyId: getVendorIdForPolicy(),
