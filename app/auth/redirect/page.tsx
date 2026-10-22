@@ -9,7 +9,7 @@ export default function RedirectPage() {
     useEffect(() => {
         if (!isLoading) {
             if (isAuthenticated) {
-                window.location.href = "/home";
+                window.location.href = "/";
             } else {
                 window.location.href = "/";
             }
