@@ -1,0 +1,36 @@
+{
+  "name": "sealedvoice",
+  "version": "0.1.0",
+  "private": true,
+  "engines": {
+    "node": ">=20.9.0"
+  },
+  "scripts": {
+    "dev": "next dev --webpack",
+    "build": "next build --webpack",
+    "start": "next start",
+    "init": "sh init/start.sh",
+    "test": "node --experimental-strip-types --test tests/"
+  },
+  "dependencies": {
+    "@tidecloak/js": "0.13.21",
+    "@tideorg/js": "0.13.21",
+    "asgard-tide": "0.12.47",
+    "better-sqlite3": "^12.11.1",
+    "heimdall-tide": "0.13.21",
+    "highlight.js": "^11.11.1",
+    "next": "16.x",
+    "react": "19.x",
+    "react-dom": "19.x"
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "^7.6.12",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "typescript": "^5"
+  },
+  "allowScripts": {
+    "@tidecloak/js@0.13.21": true,
+    "better-sqlite3@12.11.1": true
+  }
+}

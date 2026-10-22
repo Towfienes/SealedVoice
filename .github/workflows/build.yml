@@ -1,0 +1,29 @@
+name: build
+on:
+  push:
+    branches: [main]
+  pull_request:
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Locate app
+        id: app
+        run: |
+          dir=$(dirname "$(git ls-files '*package.json' | grep -v node_modules | awk '{print length, $0}' | sort -n | head -1 | cut -d' ' -f2-)" 2>/dev/null || true)
+          if [ -z "$dir" ] || [ ! -f "$dir/package.json" ]; then echo "found=false" >> "$GITHUB_OUTPUT"; else echo "found=true" >> "$GITHUB_OUTPUT"; echo "dir=$dir" >> "$GITHUB_OUTPUT"; fi
+      - uses: actions/setup-node@v4
+        if: steps.app.outputs.found == 'true'
+        with:
+          node-version: 22
+      - name: Install and build
+        if: steps.app.outputs.found == 'true'
+        working-directory: ${{ steps.app.outputs.dir }}
+        run: |
+          if [ -f package-lock.json ]; then npm ci; else npm install; fi
+          npm run build --if-present
+          npm test --if-present
+      - name: Check video size
+        run: |
+          if [ -f Video.mp4 ]; then size=$(stat -c%s Video.mp4); echo "Video.mp4 = $size bytes"; test "$size" -lt 104857600; fi

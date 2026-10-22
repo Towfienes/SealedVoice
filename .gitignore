@@ -1,0 +1,37 @@
+node_modules/
+.next/
+out/
+dist/
+build/
+coverage/
+*.tsbuildinfo
+next-env.d.ts
+
+# Secrets / local TideCloak state — never commit
+.env
+.env.*
+!.env.example
+!**/.env.example
+**/data/tidecloak.json
+**/data/admin-policy.b64
+public/tidecloak.json
+tidecloak.json
+*.sqlite
+*.db
+h2/
+
+# Raw recordings (only the compressed Video.mp4 is committed)
+raw*.mp4
+recordings/
+
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.log
+
+# local
+db/
+keycloakdb.*
+test-results/
+playwright-report/
