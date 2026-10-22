@@ -1,6 +1,7 @@
 "use client";
 // Real vault: TideCloak login + Forseti-governed encryption. Every denial carries the exact ORK/Tide text.
 // One doEncrypt per envelope; each envelope's tags are stored with it and passed back unchanged on decrypt.
+import { useMemo, useRef } from "react";
 import { IAMService } from "@tidecloak/js";
 import { useAuth } from "@/hooks/useAuth";
 import { base64ToBytes } from "@/lib/tideSerialization";
@@ -44,32 +45,46 @@ export function classifyDenial(message: string): "timelock" | "role" | "error" {
   return "error";
 }
 
+type AuthCtx = ReturnType<typeof useAuth>;
+
+/**
+ * The vault object must be referentially stable: components subscribe to it in useEffect deps.
+ * It changes only when the sign-in state changes. All calls read the latest auth through a ref.
+ */
 export function useTideVault(): Vault {
   const auth = useAuth();
+  const ref = useRef<AuthCtx>(auth);
+  ref.current = auth;
+  const rolesKey = auth.tokenRoles.join(",");
+  return useMemo(() => buildTideVault(ref), [auth.isAuthenticated, auth.vuid, rolesKey]);
+}
+
+function buildTideVault(ref: { current: AuthCtx }): Vault {
+  const A = () => ref.current;
 
   const session = (): Session => {
-    const signedIn = !!auth.isAuthenticated;
+    const signedIn = !!A().isAuthenticated;
     let username = "";
     try { username = String(IAMService.getValueFromToken("preferred_username") ?? ""); } catch { /* not signed in */ }
     return {
       signedIn,
       displayName: signedIn ? (DISPLAY[username] ?? username) : "",
-      roles: auth.tokenRoles,
-      isRealmAdmin: auth.tokenRoles.some((r) => r.endsWith(":tide-realm-admin") || r === "tide-realm-admin"),
+      roles: A().tokenRoles,
+      isRealmAdmin: A().tokenRoles.some((r) => r.endsWith(":tide-realm-admin") || r === "tide-realm-admin"),
     };
   };
 
-  const bearer = async () => ({ Authorization: `Bearer ${await auth.getToken()}` });
+  const bearer = async () => ({ Authorization: `Bearer ${await A().getToken()}` });
 
   async function encryptEnvelope(kind: EnvelopeKind, plaintext: string, unlockAt?: number): Promise<SealedEnvelope> {
     const tags = envelopeTags(kind, unlockAt);
     const policy = await policyBytes(ENVELOPE_LABEL[kind]);
-    const [ciphertext] = await auth.doEncrypt([{ data: plaintext, tags }], policy);
+    const [ciphertext] = await A().doEncrypt([{ data: plaintext, tags }], policy);
     return { kind, ciphertext, tags, ...(unlockAt !== undefined ? { unlockAt } : {}) };
   }
 
   async function openEnvelope<T>(r: ReportRecord, kind: EnvelopeKind): Promise<OpenResult<T>> {
-    if (!auth.isAuthenticated) return { ok: false, reason: "not-signed-in", message: "Sign in first" };
+    if (!A().isAuthenticated) return { ok: false, reason: "not-signed-in", message: "Sign in first" };
     const env = r.envelopes[kind];
     let policy: Uint8Array;
     try {
@@ -78,7 +93,7 @@ export function useTideVault(): Vault {
       return { ok: false, reason: "error", message: String(e?.message ?? e) }; // setup problem, not a Tide denial
     }
     try {
-      const [out] = await auth.doDecrypt([{ encrypted: env.ciphertext, tags: env.tags }], policy);
+      const [out] = await A().doDecrypt([{ encrypted: env.ciphertext, tags: env.tags }], policy);
       const text = typeof out === "string" ? out : new TextDecoder().decode(out);
       return { ok: true, value: JSON.parse(text) as T };
     } catch (e: any) {

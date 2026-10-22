@@ -20,7 +20,16 @@ export function useSession() {
   const [session, setSession] = useState<Session | null>(null);
 
   useEffect(() => {
-    const sync = () => setSession(vault.session());
+    // Only update when the session really changed; a fresh-but-equal object must not re-render (render-loop guard).
+    const sync = () => {
+      const next = vault.session();
+      setSession((prev) =>
+        prev && prev.signedIn === next.signedIn && prev.displayName === next.displayName &&
+        prev.isRealmAdmin === next.isRealmAdmin && prev.roles.join(",") === next.roles.join(",")
+          ? prev
+          : next,
+      );
+    };
     sync();
     window.addEventListener(EVT, sync);
     window.addEventListener("storage", sync);

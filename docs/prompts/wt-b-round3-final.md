@@ -1,0 +1,11 @@
+# Prompt: WT-B round 3, final UX (worktree sv-wt/ui)
+
+You are WT-B. `git fetch && git switch -c feat/ui-final origin/main` in `sv-wt/ui`. Read AGENTS.md, specs/001-sealedvoice/*, and the P0 note: the tide vault re-rendered forever (fixed on main). **Test in BOTH modes:** mock on :3002 (`NEXT_PUBLIC_VAULT=mock`) and a **tide production build** on :3003 (`NEXT_PUBLIC_VAULT=tide npm run build && npx next start -p 3003`, signed-out states only). Hard stop 16:10 VN. Push every 20 min. PR `feat(ui): final UX`.
+Use the skills `ui-ux-pro-max` (5 min), then `frontend-design`, `impeccable` (Playwright screenshots at 390/768/1440, max 2 rounds), `make-interfaces-feel-better`, and `accessibility`.
+1. **Every click gives feedback within 100 ms.** Async buttons get a disabled + spinner state with a step label ("Waiting for Tide enclave…", "Encrypting identity envelope…" via WT-A's progress helper when it lands, otherwise generic). Show success/denial in the result callout. Never fail silently: catch every promise and render its message.
+2. **Role-aware desks:** when signed out, show a clear "Sign in as <persona>" card with the persona hint. When the signed-in role is wrong, show "This desk is for <role>. You are <persona>.", but keep the attempt button (the denial is part of the demo).
+3. **Integrate the brand** when Codex's `public/brand/logo-mark.svg` exists on main (`git fetch` periodically): header mark, favicon via `app/icon.svg`, landing hero, and `/how-it-works` using `docs/architecture.svg` (copy it to `public/brand/` if needed). Fall back gracefully if missing.
+4. Fix the 404 resource seen in the console. Remove any remaining layout jank (no layout shift on session load: reserve the persona bar height).
+5. Video readiness: `/receipt`, `/council` countdown, `/dean` result bands, and the 202 card must be legible at 125% zoom in a 960×540 tile (the user records 4 windows tiled). Check at that size.
+6. Keep "Blocked by Tide" only in tide mode and "Blocked (simulated)" in mock mode. Do not touch lib/vault/*, app/api/**, or lib/database/**.
+Verify: `npx tsc --noEmit -p .`, `npm run build`, `npm test`, `npm run smoke`, and the screenshot set. Report before/after paths and real results.

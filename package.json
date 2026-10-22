@@ -11,7 +11,8 @@
     "start": "next start",
     "init": "sh init/start.sh",
     "test": "node --experimental-strip-types --test \"tests/*.test.ts\"",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "smoke": "node scripts/smoke.mjs"
   },
   "dependencies": {
     "@tidecloak/js": "^0.14.41",
