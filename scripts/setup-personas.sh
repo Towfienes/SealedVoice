@@ -18,7 +18,9 @@ REALM="${NEW_REALM_NAME:-forseti-test}"
 KC_USER="${KC_USER:-admin}"; KC_PASSWORD="${KC_PASSWORD:-password}"
 OUT="$(cd "$(dirname "$0")/.." && pwd)/data/invite-links.txt"
 ROLES=(student investigator identity-guardian council)
-USERS=("mai:student:Mai:Nguyen" "lan:investigator:Lan:Tran" "minh:identity-guardian:Minh:Le" "council:council:University:Council")
+# The free Tide licence allows 4 accounts (admin = Dr. Hung + these three). Role lists are comma-separated.
+#   council = Inspector Lan's login (investigator); minh = Guardian Minh, who also holds the University Council seat.
+USERS=("mai:student:Mai:Nguyen" "council:investigator:Lan:Tran" "minh:identity-guardian,council:Minh:Le")
 
 tok() { curl -s -X POST "$URL/realms/master/protocol/openid-connect/token" \
   --data-urlencode "username=$KC_USER" --data-urlencode "password=$KC_PASSWORD" \
@@ -37,9 +39,10 @@ case "${1:-status}" in
       echo "user $n -> $(code POST /users -H 'Content-Type: application/json' -d "{\"username\":\"$n\",\"email\":\"$n@sealedvoice.test\",\"firstName\":\"$f\",\"lastName\":\"$l\",\"enabled\":true,\"attributes\":{\"tideInvitable\":[\"true\"]}}")"; done
     echo "Now approve + commit in tide-console:"; pending ;;
   map)
-    for u in "${USERS[@]}"; do IFS=: read -r n r _ _ <<<"$u"; id=$(uid "$n"); [ -n "$id" ] || { echo "user $n missing: commit CREATE_USER first"; continue; }
-      rep=$(curl -s "$URL/admin/realms/$REALM/roles/$r" -H "Authorization: Bearer $T")
-      echo "$n += $r -> $(code POST "/users/$id/role-mappings/realm" -H 'Content-Type: application/json' -d "[$rep]")"; done
+    for u in "${USERS[@]}"; do IFS=: read -r n rs _ _ <<<"$u"; id=$(uid "$n"); [ -n "$id" ] || { echo "user $n missing: commit CREATE_USER first"; continue; }
+      for r in ${rs//,/ }; do
+        rep=$(curl -s "$URL/admin/realms/$REALM/roles/$r" -H "Authorization: Bearer $T")
+        echo "$n += $r -> $(code POST "/users/$id/role-mappings/realm" -H 'Content-Type: application/json' -d "[$rep]")"; done; done
     echo "Now approve + commit in tide-console:"; pending ;;
   invite)
     : > "$OUT"

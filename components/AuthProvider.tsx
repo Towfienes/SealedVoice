@@ -66,6 +66,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const [tokenRoles, setTokenRoles] = useState<string[]>([]);
 
     useEffect(() => {
+        // Mock vault (the default) never talks to TideCloak: skip init so it does not log an init error.
+        if (process.env.NEXT_PUBLIC_VAULT !== "tide") {
+            setIsAuthenticated(false);
+            setIsLoading(false);
+            return;
+        }
         const initAuth = async () => {
             const config = await initTcData();
 
