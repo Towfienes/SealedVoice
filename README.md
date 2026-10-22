@@ -1,3 +1,8 @@
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="public/brand/logo-wordmark-light.svg">
+  <img src="public/brand/logo-wordmark.svg" alt="SealedVoice" width="420">
+</picture>
+
 [![Built with TideCloak](https://tide.org/badges/built-with-tidecloak.svg)](https://tide.org/tidecloak?utm_source=github&utm_medium=readme&utm_campaign=unlocked)
 
 ## Project overview
@@ -18,12 +23,16 @@ Mai receives a pseudonymous receipt. Inspector Lan reads the allegation without 
 ### 4. Why TideCloak matters
 The intended live path encrypts three envelopes in the browser. Forseti on Tide's ORKs enforces separate decryption roles and the council time lock; TideCloak governs role changes through administrator quorum. A backend permission check alone cannot provide that separation.
 
+![Four-layer architecture and insider blocks](docs/architecture.svg)
+
 ### 5. Prototype & storytelling
 The demo follows Mai, Lan, Minh and insider Dr. Hung through submission, investigation, identity denial, a pending self-grant and council escalation. **Mocked mode simulates encryption, roles, quorum and time locks; it proves no Tide security guarantee.** Live enforcement must be verified separately; see [validation status](docs/VALIDATION.md).
 
 ## Demo video
 
 [Video.mp4](Video.mp4) — target: at most 2:00 and under 100 MB. Recording is pending; the [shot list and English narration](docs/DEMO_SCRIPT.md) are ready for production.
+
+[Video title cards](docs/video) · [Visual handoff](docs/brand/README.md) · [Asset credits](docs/CREDITS.md).
 
 ## Setup
 
@@ -75,3 +84,4 @@ Live setup is not yet certified from a fresh clone. It needs interactive enrollm
 ## Credits
 Built on [tide-foundation/forseti-crypto-quickstart](https://github.com/tide-foundation/forseti-crypto-quickstart).
 Token-verifier tests and the original trust/attack analyses were adapted from the team's SealedBid work. [TideCloak](https://tide.org/tidecloak) provides the intended identity, policy and threshold-cryptography infrastructure. All demo personas and reports are synthetic.
+Original SVG artwork, outlined font sources and retained licence notices are listed in [visual credits](docs/CREDITS.md).

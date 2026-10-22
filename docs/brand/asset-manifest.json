@@ -1,0 +1,846 @@
+{
+  "font_commit": "45e3d5269e4a17d823f6d84470bc084dc5ae46f6",
+  "fonts": {
+    "fraunces": {
+      "path": "ofl/fraunces/Fraunces[SOFT,WONK,opsz,wght].ttf",
+      "sha256": "177ff6c0f14e5550a3c624247cd1189611d4eb65d000b14944c63d967958abbb"
+    },
+    "publicsans": {
+      "path": "ofl/publicsans/PublicSans[wght].ttf",
+      "sha256": "d75a7dc1a27eb9e336d5b33f55489d2ecb5621bf694d5c43b2415bce2ca830a8"
+    },
+    "mono": {
+      "path": "ofl/ibmplexmono/IBMPlexMono-Regular.ttf",
+      "sha256": "6a3412f058c7d8dfd9170c41e85ade48e5156ecb89356110ca57a0a27734af46"
+    }
+  },
+  "assets": [
+    {
+      "file": "public/brand/logo-wordmark.svg",
+      "width": 745,
+      "height": 160,
+      "labels": [
+        {
+          "text": "SealedVoice",
+          "size": 96,
+          "bounds": [
+            187.53,
+            43.1,
+            718.28,
+            116.48
+          ]
+        }
+      ]
+    },
+    {
+      "file": "public/brand/logo-wordmark-light.svg",
+      "width": 745,
+      "height": 160,
+      "labels": [
+        {
+          "text": "SealedVoice",
+          "size": 96,
+          "bounds": [
+            187.53,
+            43.1,
+            718.28,
+            116.48
+          ]
+        }
+      ]
+    },
+    {
+      "file": "public/brand/team-fprinciples.svg",
+      "width": 700,
+      "height": 160,
+      "labels": [
+        {
+          "text": "Fprinciples",
+          "size": 64,
+          "bounds": [
+            169.59,
+            34.45,
+            498.28,
+            92.3
+          ]
+        },
+        {
+          "text": "Team Fprinciples \u00b7 RMIT SGS",
+          "size": 26,
+          "bounds": [
+            164.6,
+            106.68,
+            512.34,
+            130.19
+          ]
+        }
+      ]
+    },
+    {
+      "file": "docs/architecture.svg",
+      "width": 1920,
+      "height": 1080,
+      "labels": [
+        {
+          "text": "Who can open each envelope?",
+          "size": 91,
+          "bounds": [
+            96.73,
+            91.85,
+            1335.19,
+            181.22
+          ]
+        },
+        {
+          "text": "One report. Separate authority at every layer.",
+          "size": 36,
+          "bounds": [
+            101.94,
+            201.25,
+            855.62,
+            233.94
+          ]
+        },
+        {
+          "text": "Browser",
+          "size": 51,
+          "bounds": [
+            126.1,
+            330.3,
+            326.06,
+            366.6
+          ]
+        },
+        {
+          "text": "App server",
+          "size": 51,
+          "bounds": [
+            580.18,
+            330.3,
+            834.98,
+            377.89
+          ]
+        },
+        {
+          "text": "TideCloak",
+          "size": 51,
+          "bounds": [
+            1036.96,
+            327.81,
+            1278.98,
+            366.88
+          ]
+        },
+        {
+          "text": "Tide ORKs",
+          "size": 51,
+          "bounds": [
+            1492.96,
+            327.81,
+            1746.95,
+            366.77
+          ]
+        },
+        {
+          "text": "Encrypts 3 envelopes",
+          "size": 28,
+          "bounds": [
+            126.45,
+            404.2,
+            407.72,
+            429.62
+          ]
+        },
+        {
+          "text": "Content \u00b7 Identity \u00b7 Council",
+          "size": 24,
+          "bounds": [
+            125.3,
+            449.17,
+            417.35,
+            470.96
+          ]
+        },
+        {
+          "text": "Plaintext stays in the browser",
+          "size": 21.97,
+          "bounds": [
+            126.1,
+            607.68,
+            427.25,
+            627.62
+          ]
+        },
+        {
+          "text": "Ciphertext only",
+          "size": 31,
+          "bounds": [
+            581.57,
+            401.97,
+            806.94,
+            430.12
+          ]
+        },
+        {
+          "text": "No sign-in token on POST",
+          "size": 25,
+          "bounds": [
+            582.38,
+            453.43,
+            876.48,
+            476.27
+          ]
+        },
+        {
+          "text": "No reporter identity field",
+          "size": 25,
+          "bounds": [
+            582.38,
+            495.43,
+            867.15,
+            518.12
+          ]
+        },
+        {
+          "text": "POST /api/reports",
+          "size": 24,
+          "bounds": [
+            582.16,
+            560.76,
+            822.98,
+            583.8
+          ]
+        },
+        {
+          "text": "IP / timing still visible",
+          "size": 24,
+          "bounds": [
+            582.29,
+            606.17,
+            816.61,
+            628.1
+          ]
+        },
+        {
+          "text": "Roles + governed changes",
+          "size": 24.84,
+          "bounds": [
+            1038.37,
+            406.54,
+            1338.89,
+            429.25
+          ]
+        },
+        {
+          "text": "2 of 3 admins approve",
+          "size": 28,
+          "bounds": [
+            1037.25,
+            452.2,
+            1325.77,
+            477.51
+          ]
+        },
+        {
+          "text": "Independent role holders",
+          "size": 24,
+          "bounds": [
+            1038.29,
+            606.17,
+            1315.92,
+            627.86
+          ]
+        },
+        {
+          "text": "Forseti policy",
+          "size": 31,
+          "bounds": [
+            1494.71,
+            401.97,
+            1690.06,
+            430.12
+          ]
+        },
+        {
+          "text": "Role + time lock",
+          "size": 28,
+          "bounds": [
+            1494.67,
+            450.2,
+            1699.35,
+            471.28
+          ]
+        },
+        {
+          "text": "No server-held master key",
+          "size": 23,
+          "bounds": [
+            1494.19,
+            495.91,
+            1774.99,
+            516.79
+          ]
+        },
+        {
+          "text": "Staging ORK: t=3, n=5",
+          "size": 24,
+          "bounds": [
+            1493.39,
+            606.41,
+            1738.41,
+            628.1
+          ]
+        },
+        {
+          "text": "Dr. Hung",
+          "size": 40,
+          "bounds": [
+            99.5,
+            844.08,
+            261.25,
+            879.84
+          ]
+        },
+        {
+          "text": "Insider admin",
+          "size": 28,
+          "bounds": [
+            98.67,
+            900.2,
+            269.08,
+            921.28
+          ]
+        },
+        {
+          "text": "DB access \u2260 plaintext",
+          "size": 27,
+          "bounds": [
+            570.58,
+            779.94,
+            838.13,
+            804.35
+          ]
+        },
+        {
+          "text": "Self-grant needs quorum",
+          "size": 27,
+          "bounds": [
+            1019.56,
+            779.94,
+            1332.65,
+            804.62
+          ]
+        },
+        {
+          "text": "Wrong role / too early: denied",
+          "size": 24.74,
+          "bounds": [
+            1474.57,
+            781.62,
+            1812.12,
+            804.23
+          ]
+        },
+        {
+          "text": "Design overview. Real ORK / QEA outcomes must be verified separately.",
+          "size": 27,
+          "bounds": [
+            98.58,
+            979.94,
+            996.14,
+            1004.62
+          ]
+        },
+        {
+          "text": "Trusted browser required. Metadata and IP remain visible. Deletion / withholding is not prevented.",
+          "size": 26,
+          "bounds": [
+            96.6,
+            1022.68,
+            1271.46,
+            1046.45
+          ]
+        }
+      ]
+    },
+    {
+      "file": "docs/video/00-title.svg",
+      "width": 1920,
+      "height": 1080,
+      "labels": [
+        {
+          "text": "Verified, never exposed.",
+          "size": 57,
+          "bounds": [
+            642.04,
+            657.65,
+            1275.87,
+            709.18
+          ]
+        },
+        {
+          "text": "Team Fprinciples \u00b7 RMIT SGS",
+          "size": 29,
+          "bounds": [
+            144.67,
+            938.45,
+            532.53,
+            964.67
+          ]
+        },
+        {
+          "text": "A university reporting prototype",
+          "size": 28,
+          "bounds": [
+            1261.15,
+            939.76,
+            1676.36,
+            964.79
+          ]
+        }
+      ]
+    },
+    {
+      "file": "docs/video/01-possibility.svg",
+      "width": 1920,
+      "height": 1080,
+      "labels": [
+        {
+          "text": "\u201cFind out which",
+          "size": 112,
+          "bounds": [
+            145.66,
+            249.32,
+            957.14,
+            339.31
+          ]
+        },
+        {
+          "text": "student wrote this.\u201d",
+          "size": 112,
+          "bounds": [
+            146.94,
+            383.64,
+            1156.12,
+            471.31
+          ]
+        },
+        {
+          "text": "The Head of School",
+          "size": 34,
+          "bounds": [
+            150.79,
+            522.74,
+            458.84,
+            548.34
+          ]
+        },
+        {
+          "text": "\u201cI can\u2019t. Nobody can.\u201d",
+          "size": 66,
+          "bounds": [
+            146.96,
+            716.96,
+            806.76,
+            776.89
+          ]
+        },
+        {
+          "text": "Possibility",
+          "size": 34,
+          "bounds": [
+            147.24,
+            934.74,
+            305.72,
+            965.61
+          ]
+        },
+        {
+          "text": "The opening scenario",
+          "size": 28,
+          "bounds": [
+            1420.65,
+            939.2,
+            1696.57,
+            964.79
+          ]
+        }
+      ]
+    },
+    {
+      "file": "docs/video/02-constraint.svg",
+      "width": 1920,
+      "height": 1080,
+      "labels": [
+        {
+          "text": "The law requires your name.",
+          "size": 58,
+          "bounds": [
+            145.35,
+            236.91,
+            897.28,
+            289.57
+          ]
+        },
+        {
+          "text": "Your name is what",
+          "size": 108,
+          "bounds": [
+            145.15,
+            424.12,
+            1058.2,
+            506.26
+          ]
+        },
+        {
+          "text": "gets you punished.",
+          "size": 108,
+          "bounds": [
+            145.95,
+            557.12,
+            1058.54,
+            664.48
+          ]
+        },
+        {
+          "text": "Identity",
+          "size": 35,
+          "bounds": [
+            1463.06,
+            349.0,
+            1587.94,
+            380.77
+          ]
+        },
+        {
+          "text": "Verified student",
+          "size": 27,
+          "bounds": [
+            1460.63,
+            411.94,
+            1662.1,
+            432.27
+          ]
+        },
+        {
+          "text": "Synthetic example",
+          "size": 24,
+          "bounds": [
+            1461.39,
+            460.17,
+            1668.79,
+            481.96
+          ]
+        },
+        {
+          "text": "Constraint",
+          "size": 34,
+          "bounds": [
+            145.84,
+            935.08,
+            308.46,
+            960.34
+          ]
+        },
+        {
+          "text": "The accused may run the system.",
+          "size": 28,
+          "bounds": [
+            1190.65,
+            939.2,
+            1621.4,
+            964.62
+          ]
+        }
+      ]
+    },
+    {
+      "file": "docs/video/03-prototype.svg",
+      "width": 1920,
+      "height": 1080,
+      "labels": [
+        {
+          "text": "Three envelopes.",
+          "size": 112,
+          "bounds": [
+            146.1,
+            185.12,
+            1012.28,
+            295.12
+          ]
+        },
+        {
+          "text": "Separate authority.",
+          "size": 112,
+          "bounds": [
+            148.12,
+            314.12,
+            1139.17,
+            424.87
+          ]
+        },
+        {
+          "text": "TideCloak governs roles. Forseti governs opening.",
+          "size": 38,
+          "bounds": [
+            148.88,
+            458.77,
+            1025.4,
+            493.5
+          ]
+        },
+        {
+          "text": "Content",
+          "size": 37,
+          "bounds": [
+            145.88,
+            838.88,
+            283.98,
+            866.37
+          ]
+        },
+        {
+          "text": "Inspector Lan",
+          "size": 29,
+          "bounds": [
+            146.77,
+            896.03,
+            326.69,
+            921.67
+          ]
+        },
+        {
+          "text": "Identity",
+          "size": 37,
+          "bounds": [
+            709.23,
+            838.51,
+            841.25,
+            872.11
+          ]
+        },
+        {
+          "text": "Guardian Minh",
+          "size": 29,
+          "bounds": [
+            707.57,
+            895.45,
+            900.1,
+            917.29
+          ]
+        },
+        {
+          "text": "Council copy",
+          "size": 37,
+          "bounds": [
+            1269.88,
+            838.51,
+            1492.02,
+            872.11
+          ]
+        },
+        {
+          "text": "After the time lock",
+          "size": 29,
+          "bounds": [
+            1269.2,
+            895.45,
+            1520.99,
+            917.29
+          ]
+        },
+        {
+          "text": "Prototype \u00b7 browser-side sealing",
+          "size": 27,
+          "bounds": [
+            146.58,
+            984.94,
+            549.48,
+            1009.62
+          ]
+        },
+        {
+          "text": "Design overview; see validation for live results.",
+          "size": 26,
+          "bounds": [
+            1132.48,
+            985.68,
+            1691.43,
+            1009.45
+          ]
+        }
+      ]
+    },
+    {
+      "file": "docs/video/04-what-changes.svg",
+      "width": 1920,
+      "height": 1080,
+      "labels": [
+        {
+          "text": "Power needs",
+          "size": 150,
+          "bounds": [
+            150.17,
+            241.66,
+            1021.06,
+            355.76
+          ]
+        },
+        {
+          "text": "more than one person.",
+          "size": 135,
+          "bounds": [
+            147.29,
+            434.9,
+            1524.5,
+            567.49
+          ]
+        },
+        {
+          "text": "A verified identity. A separate investigator.",
+          "size": 47,
+          "bounds": [
+            151.94,
+            679.08,
+            1079.12,
+            722.04
+          ]
+        },
+        {
+          "text": "An independent guardian. A council access path.",
+          "size": 47,
+          "bounds": [
+            151.94,
+            750.08,
+            1208.18,
+            793.04
+          ]
+        },
+        {
+          "text": "What changes",
+          "size": 34,
+          "bounds": [
+            144.79,
+            934.74,
+            368.93,
+            965.81
+          ]
+        },
+        {
+          "text": "Browser trust, metadata and deletion remain limits.",
+          "size": 28,
+          "bounds": [
+            1032.67,
+            939.2,
+            1695.04,
+            963.51
+          ]
+        }
+      ]
+    },
+    {
+      "file": "docs/video/05-outro.svg",
+      "width": 1920,
+      "height": 1080,
+      "labels": [
+        {
+          "text": "Fprinciples",
+          "size": 126,
+          "bounds": [
+            391.02,
+            298.38,
+            1038.12,
+            412.29
+          ]
+        },
+        {
+          "text": "Team Fprinciples \u00b7 RMIT SGS",
+          "size": 36,
+          "bounds": [
+            386.84,
+            447.25,
+            868.31,
+            479.8
+          ]
+        },
+        {
+          "text": "Built with",
+          "size": 29,
+          "bounds": [
+            178.77,
+            650.45,
+            302.4,
+            672.29
+          ]
+        },
+        {
+          "text": "TideCloak",
+          "size": 53,
+          "bounds": [
+            175.11,
+            693.62,
+            425.17,
+            733.53
+          ]
+        },
+        {
+          "text": "github.com/Towfienes/SealedVoice",
+          "size": 45,
+          "bounds": [
+            145.69,
+            896.57,
+            886.97,
+            937.7
+          ]
+        }
+      ]
+    },
+    {
+      "file": "public/brand/og.svg",
+      "width": 1200,
+      "height": 630,
+      "labels": [
+        {
+          "text": "SealedVoice",
+          "size": 105,
+          "bounds": [
+            79.86,
+            180.36,
+            660.37,
+            260.62
+          ]
+        },
+        {
+          "text": "Verified,",
+          "size": 54,
+          "bounds": [
+            81.25,
+            319.88,
+            288.18,
+            366.77
+          ]
+        },
+        {
+          "text": "never exposed.",
+          "size": 54,
+          "bounds": [
+            84.12,
+            386.88,
+            456.62,
+            435.69
+          ]
+        },
+        {
+          "text": "Team Fprinciples \u00b7 RMIT SGS",
+          "size": 26,
+          "bounds": [
+            80.6,
+            537.68,
+            428.34,
+            561.19
+          ]
+        }
+      ]
+    }
+  ]
+}
