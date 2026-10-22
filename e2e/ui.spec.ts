@@ -88,19 +88,19 @@ test("US4 UI: Hung's four insider actions show the simulated limits", async ({ p
   await page.goto("/dean");
   await choosePersona(page, "hung");
   await page.getByLabel("Report to attack", { exact: true }).selectOption(receipt.reportId);
-  await page.getByRole("button", { name: /Inspect database/ }).click();
+  await page.getByRole("region", { name: "Attack 1: Inspect database", exact: true }).getByRole("button", { name: "Run attack 1", exact: true }).click();
   const rows = page.getByRole("region", { name: "Raw database rows", exact: true });
   await expect(rows).toContainText(receipt.alias);
   await expect(rows).not.toContainText(draft.description);
   await expect(rows).not.toContainText(reporterName);
-  await page.getByRole("button", { name: /Reveal reporter/ }).click();
+  await page.getByRole("region", { name: "Attack 2: Reveal reporter", exact: true }).getByRole("button", { name: "Run attack 2", exact: true }).click();
   await expect(page.getByText("Reporter stays hidden", { exact: true })).toBeVisible();
   await expect(page.getByText("[SIMULATED] Forseti: executor lacks realm role 'identity-guardian'", { exact: true })).toBeVisible();
-  await page.getByRole("button", { name: /Add me as investigator/ }).click();
+  await page.getByRole("region", { name: "Attack 3: Add me as investigator", exact: true }).getByRole("button", { name: "Run attack 3", exact: true }).click();
   await expect(page.getByText("HTTP 202", { exact: true })).toBeVisible();
   await expect(page.getByText("Pending, not granted", { exact: true })).toBeVisible();
   await expect(page.getByText("[SIMULATED] Change request parked: grant 'investigator' to dr.hung needs 2 of 3 admins", { exact: true })).toBeVisible();
-  await page.getByRole("button", { name: /Bury the report/ }).click();
+  await page.getByRole("region", { name: "Attack 4: Bury the report", exact: true }).getByRole("button", { name: "Run attack 4", exact: true }).click();
   await expect(page.getByText("[SIMULATED] Forseti: executor lacks realm role 'council'", { exact: true })).toBeVisible();
   // The countdown is simulated access timing; it does not prove deletion prevention.
   await page.goto("/investigator");

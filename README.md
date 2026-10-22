@@ -21,7 +21,7 @@ The design starts from the named-report requirement described in our [spec](spec
 Mai receives a pseudonymous receipt. Inspector Lan reads the allegation without the identity. Guardian Minh verifies the student separately. A timed council copy provides an escalation path, provided the ciphertext remains available.
 
 ### 4. Why TideCloak matters
-**VERIFIED LIVE (lead, 15:32 VN):** TideCloak login for four personas, Tide-issued roles, three Forseti policies committed through the Tide enclave, and QEA pending change requests. **NOT VERIFIED LIVE:** end-to-end seal/decrypt, blocked by network issues. Pending requests do not establish completed quorum approval or ORK enforcement.
+**VERIFIED LIVE (lead, 15:32 VN):** TideCloak login for four personas, Tide-issued roles, three Forseti policies committed through the Tide enclave, and QEA pending change requests. **NOT VERIFIED LIVE:** end-to-end seal/decrypt, blocked by network issues. Pending requests do not establish completed quorum approval or ORK enforcement. A one-admin realm can self-approve; 2-of-3 requires three admins.
 
 ![Four-layer architecture and insider blocks](docs/architecture.png)
 
