@@ -5,6 +5,7 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { policyBytes } from "@/lib/vault/tide";
+import { raceForcedRelogin } from "@/lib/tideSession";
 
 interface Row { id: string; alias: string; createdAt: number; envelopes: { council: { ciphertext: string; tags: string[]; unlockAt?: number } } }
 interface Outcome { label: string; tags: string[]; result: string }
@@ -41,7 +42,7 @@ export default function Lab() {
       for (const v of variants) {
         let result: string;
         try {
-          const [plain] = await auth.doDecrypt([{ encrypted: env.ciphertext, tags: v.tags }], policy);
+          const [plain] = await raceForcedRelogin(auth.doDecrypt([{ encrypted: env.ciphertext, tags: v.tags }], policy));
           result = `OPENED: ${typeof plain === "string" ? plain : new TextDecoder().decode(plain)}`;
         } catch (e: any) {
           result = `DENIED: ${String(e?.message ?? e)}`;

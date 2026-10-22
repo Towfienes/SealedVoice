@@ -83,4 +83,5 @@ From now on Dr. Hung's self-grant (the `/dean` scene) returns **202 pending** an
 - Login loops or redirects to the wrong port: the app must be on :3000.
 - A role you just committed is missing: sign out and in again.
 - `Policy 'x' is not committed yet`: step 6 for that label.
+- A red banner "Tide requires re-authentication … session key mismatch" (or "Signed-in account changed from X to Y"): the Tide enclave/SSO session stored in that browser profile belongs to a different Tide account than the token. Click **Sign out**, sign in as the intended persona in that profile, retry. Never log two personas into one profile.
 - Always copy the exact Tide/ORK error text; it is shown in the UI and used in the video.

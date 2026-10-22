@@ -5,6 +5,7 @@ import { useMemo, useRef } from "react";
 import { IAMService } from "@tidecloak/js";
 import { useAuth } from "@/hooks/useAuth";
 import { base64ToBytes } from "@/lib/tideSerialization";
+import { raceForcedRelogin } from "@/lib/tideSession";
 import { ENVELOPE_LABEL, envelopeTags, type PolicyLabel } from "@/lib/policies/labels";
 import type {
   EnvelopeKind, OpenResult, Receipt, ReportDraft, ReportRecord, ReporterIdentity, Role,
@@ -98,7 +99,7 @@ function buildTideVault(ref: { current: AuthCtx }): TideVault {
   async function encryptEnvelope(kind: EnvelopeKind, plaintext: string, unlockAt?: number): Promise<SealedEnvelope> {
     const tags = envelopeTags(kind, unlockAt);
     const policy = await policyBytes(ENVELOPE_LABEL[kind]);
-    const [ciphertext] = await A().doEncrypt([{ data: plaintext, tags }], policy);
+    const [ciphertext] = await raceForcedRelogin(A().doEncrypt([{ data: plaintext, tags }], policy));
     return { kind, ciphertext, tags, ...(unlockAt !== undefined ? { unlockAt } : {}) };
   }
 
@@ -112,7 +113,7 @@ function buildTideVault(ref: { current: AuthCtx }): TideVault {
       return { ok: false, reason: "error", message: msgOf(e) }; // setup problem, not a Tide denial
     }
     try {
-      const [out] = await A().doDecrypt([{ encrypted: env.ciphertext, tags: env.tags }], policy);
+      const [out] = await raceForcedRelogin(A().doDecrypt([{ encrypted: env.ciphertext, tags: env.tags }], policy));
       const text = typeof out === "string" ? out : new TextDecoder().decode(out);
       return { ok: true, value: JSON.parse(text) as T };
     } catch (e: any) {
