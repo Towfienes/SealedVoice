@@ -8,11 +8,11 @@ export default function RedirectPage() {
 
     useEffect(() => {
         if (!isLoading) {
-            if (isAuthenticated) {
-                window.location.href = "/";
-            } else {
-                window.location.href = "/";
-            }
+            // Return to the page where sign-in started (set by the vault's signIn), else home.
+            let back = "/";
+            try { back = sessionStorage.getItem("sv-return") || "/"; sessionStorage.removeItem("sv-return"); } catch { /* private mode */ }
+            if (!back.startsWith("/") || back.startsWith("//") || back.startsWith("/auth/")) back = "/";
+            window.location.href = isAuthenticated ? back : "/";
         }
     }, [isLoading, isAuthenticated]);
 

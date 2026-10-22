@@ -90,7 +90,10 @@ export function useTideVault(): Vault {
   return {
     mode: "tide",
     session,
-    async signIn() { IAMService.doLogin(); },
+    async signIn() {
+      try { sessionStorage.setItem("sv-return", location.pathname + location.search); } catch { /* private mode */ }
+      IAMService.doLogin();
+    },
     async signOut() { IAMService.doLogout(); },
 
     async sealReport(draft: ReportDraft, identity: ReporterIdentity, opts): Promise<Receipt> {
