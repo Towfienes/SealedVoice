@@ -32,11 +32,15 @@ The demo follows Mai, Lan, Minh and insider Dr. Hung through submission, investi
 
 ## Demo video
 
-[Watch the 2-minute demo](Video.mp4)
+**[▶ Watch the 2-minute demo (Video.mp4)](Video.mp4)** · 1:52 · English narration · mock walkthrough labelled SIMULATED, plus live Tide evidence.
 
-[Shot list and English narration](docs/DEMO_SCRIPT.md).
-
-[Video title cards](docs/video) · [Visual handoff](docs/brand/README.md) · [Asset credits](docs/CREDITS.md).
+| Resource | Link |
+|---|---|
+| Architecture | [docs/architecture.png](docs/architecture.png) |
+| Live validation status | [docs/VALIDATION.md](docs/VALIDATION.md) |
+| Live setup guide | [docs/SETUP-LIVE.md](docs/SETUP-LIVE.md) |
+| Trust model · attack vectors | [TRUST-MODEL](docs/TRUST-MODEL.md) · [ATTACK-VECTORS](docs/ATTACK-VECTORS.md) |
+| Shot list · title cards · credits | [DEMO_SCRIPT](docs/DEMO_SCRIPT.md) · [docs/video](docs/video) · [CREDITS](docs/CREDITS.md) |
 
 ## Setup
 
@@ -71,9 +75,9 @@ This path requires Docker with its daemon running, Bash, curl, jq and a Tide sub
 3. Enroll each persona in a separate browser profile. The Linux helper is `bash scripts/open-persona.sh <persona> invite`; on macOS, open the saved invitation link manually. Follow the four-account mapping below; do not enroll extra accounts.
 4. Start `NEXT_PUBLIC_VAULT=tide npm run dev` on **port 3000**. As Dr. Hung, open `/admin/policies` and create, approve and commit the investigator, guardian and council policies **before adding admins #2 and #3**.
 5. Run `bash scripts/setup-personas.sh admins`, approve and commit those changes in the Tide console, then sign out/in on affected accounts. Have the lead verify three distinct admins and the two-admin threshold. Refresh config with `EXPORT_ONLY=1 bash init/tcinit.sh`; keep both generated data files private.
-6. Run the live checks in [TRUST-MODEL.md](docs/TRUST-MODEL.md). For a production build, set `NEXT_PUBLIC_VAULT=tide` at build time too; switching modes requires restarting/rebuilding. Current login/policy/pending-request evidence does not establish successful seal/decrypt.
+6. Run the live checks in [TRUST-MODEL.md](docs/TRUST-MODEL.md). For a production build, set `NEXT_PUBLIC_VAULT=tide` at build time too; switching modes requires restarting/rebuilding. On 22 Oct a report was sealed live through 5 Tide ORKs and its content decrypted by the investigator.
 
-See [the detailed live setup and four-account mapping](docs/SETUP-LIVE.md). The lead confirmed login, roles, three enclave-committed policies and pending QEA requests; live end-to-end seal/decrypt remains unverified because of network issues. Live setup was not reproduced in the fresh-clone check; see [validation status](docs/VALIDATION.md).
+See [the detailed live setup and four-account mapping](docs/SETUP-LIVE.md). The lead confirmed login, roles, three enclave-committed policies, pending QEA requests, a live seal through 5 Tide ORKs and the investigator's content decrypt; council timing and 2-of-3 quorum remain unverified live. Live setup was not reproduced in the fresh-clone check; see [validation status](docs/VALIDATION.md).
 
 ## Limits
 - Writing style, evidence or contextual details can identify a reporter.
@@ -86,6 +90,8 @@ See [the detailed live setup and four-account mapping](docs/SETUP-LIVE.md). The 
 - A one-admin realm can approve its own pending requests; 2-of-3 requires three distinct admins and committed grants. A guardian can disclose identities they legitimately open; colluding administrators and unavailable ORKs remain threats.
 
 ## Credits
+**Team Fprinciples** (RMIT SGS) · RMIT GenAI & Cybersecurity Hackathon 2026, Challenge 2 "Tide UNLOCKED".
+
 Built on [tide-foundation/forseti-crypto-quickstart](https://github.com/tide-foundation/forseti-crypto-quickstart).
 Token-verifier tests and the original trust/attack analyses were adapted from the team's SealedBid work. [TideCloak](https://tide.org/tidecloak) provides the intended identity, policy and threshold-cryptography infrastructure. All demo personas and reports are synthetic.
 Original SVG artwork, outlined font sources and retained licence notices are listed in [visual credits](docs/CREDITS.md).
