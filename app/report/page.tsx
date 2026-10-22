@@ -4,7 +4,9 @@ import { Suspense, useState, type FormEvent } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import type { ReportDraft, ReporterIdentity } from '@/lib/vault'
 import { useSession } from '@/components/ui/useSession'
-import { Denial, LockIcon, SignInPrompt, SimulatedBadge } from '@/components/ui/Callouts'
+import { Denial, LockIcon, SimulatedBadge } from '@/components/ui/Callouts'
+import { DeskGate } from '@/components/ui/DeskGate'
+import { BusyLabel } from '@/components/ui/Spinner'
 
 const CATEGORIES: { value: ReportDraft['category']; label: string }[] = [
     { value: 'grade-for-favours', label: 'Grades for favours' },
@@ -23,7 +25,7 @@ const MAI: ReporterIdentity = {
 }
 
 function ReportForm() {
-    const { vault, session, ready } = useSession()
+    const { vault, session } = useSession()
     const router = useRouter()
     const params = useSearchParams()
     const delay = Number(params.get('delay')) || undefined
@@ -49,8 +51,6 @@ function ReportForm() {
             setBusy(false)
         }
     }
-
-    if (ready && !session?.signedIn) return <SignInPrompt what="file a report" />
 
     return (
         <form className="sv-form" onSubmit={submit} aria-describedby="seal-note">
@@ -98,16 +98,11 @@ function ReportForm() {
                 </p>
             </fieldset>
 
-            {ready && session?.signedIn && !isStudent && (
-                <div className="sv-callout warn" role="alert">
-                    <strong>{session.displayName} does not have the student role.</strong> Only students can file a report. Switch persona to Mai.
-                </div>
-            )}
             {error && <Denial reason="error" message={error} />}
 
             <div className="sv-cta-row" style={{ marginTop: 0 }}>
-                <button type="submit" className="sv-btn sv-btn-seal sv-btn-lg" disabled={busy || !isStudent}>
-                    <LockIcon /> {busy ? 'Sealing in your browser…' : 'Seal and send'}
+                <button type="submit" className="sv-btn sv-btn-seal sv-btn-lg" disabled={busy || !isStudent} aria-busy={busy}>
+                    {busy ? <BusyLabel label={vault.mode === 'tide' ? 'Encrypting 3 envelopes, waiting for Tide…' : 'Sealing in your browser (simulated)…'} /> : <><LockIcon /> Seal and send</>}
                 </button>
                 <SimulatedBadge />
             </div>
@@ -125,9 +120,12 @@ export default function ReportPage() {
                     The server receives ciphertext only, and the request carries no sign-in token, so it cannot tell who sent it.
                 </p>
             </div>
-            <Suspense fallback={<p>Loading…</p>}>
-                <ReportForm />
-            </Suspense>
+            <DeskGate need={{ kind: 'role', role: 'student' }} desk="reporting form" persona="Mai (student)" personaId="mai"
+                hint="Mai is a verified student. Only a student can file a report; her identity is sealed with it.">
+                <Suspense fallback={<p>Loading…</p>}>
+                    <ReportForm />
+                </Suspense>
+            </DeskGate>
         </div>
     )
 }

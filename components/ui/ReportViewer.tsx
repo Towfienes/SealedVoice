@@ -5,6 +5,7 @@ import type { EnvelopeKind, OpenResult, ReportDraft, ReportRecord, ReporterIdent
 import { Countdown, useUnlocked } from "./Countdown";
 import { Denial, SignInPrompt, SimulatedBadge } from "./Callouts";
 import { fmtTime } from "./format";
+import { BusyLabel } from "./Spinner";
 import { useReports, useSession } from "./useSession";
 
 export type ViewerMode = "investigator" | "guardian" | "council";
@@ -96,8 +97,8 @@ function ReportCard({ r, mode }: { r: ReportRecord; mode: ViewerMode }) {
       </div>
       {mode === "council" && unlockAt ? <Countdown unlockAt={unlockAt} /> : null}
       <div>
-        <button className="sv-btn" onClick={open} disabled={busy}>
-          {busy ? "Asking Tide…" : mode === "council" && unlockAt && !unlocked ? `${cfg.action} (try early)` : cfg.action}
+        <button className="sv-btn" onClick={open} disabled={busy} aria-busy={busy}>
+          {busy ? <BusyLabel /> : mode === "council" && unlockAt && !unlocked ? `${cfg.action} (try early)` : cfg.action}
         </button>
       </div>
       {Object.keys(slots).length > 0 && (

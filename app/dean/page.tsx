@@ -2,16 +2,18 @@
 
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
-import { MOCK_PERSONAS, type OpenResult, type ReportRecord, type RoleRequestResult } from '@/lib/vault'
-import { useReports, useSession, switchPersona } from '@/components/ui/useSession'
+import { type OpenResult, type ReportRecord, type RoleRequestResult } from '@/lib/vault'
+import { useReports, useSession } from '@/components/ui/useSession'
 import { Countdown } from '@/components/ui/Countdown'
-import { Denial, Pending, SealIcon, SignInPrompt, SimulatedBadge } from '@/components/ui/Callouts'
+import { Denial, Pending, SealIcon, SimulatedBadge } from '@/components/ui/Callouts'
+import { DeskGate } from '@/components/ui/DeskGate'
+import { BusyLabel } from '@/components/ui/Spinner'
 import { fmtTime, shorten } from '@/components/ui/format'
 
 type Out<T> = { kind: 'idle' } | { kind: 'done'; value: T }
 
-function Attack({ n, title, sub, onRun, busy, disabled, children }: {
-    n: number; title: string; sub: string; onRun: () => void; busy: boolean; disabled: boolean; children?: React.ReactNode
+function Attack({ n, title, sub, onRun, busy, disabled, error, children }: {
+    n: number; title: string; sub: string; onRun: () => void; busy: boolean; disabled: boolean; error?: string; children?: React.ReactNode
 }) {
     return (
         <section className="sv-card sv-attack" aria-label={`Attack ${n}: ${title}`}>
@@ -22,10 +24,13 @@ function Attack({ n, title, sub, onRun, busy, disabled, children }: {
                     <p>{sub}</p>
                 </div>
             </div>
-            <button className="sv-attack-btn" onClick={onRun} disabled={busy || disabled}>
-                {busy ? 'Trying…' : `Run attack ${n}`}
+            <button className="sv-attack-btn" onClick={onRun} disabled={busy || disabled} aria-busy={busy}>
+                {busy ? <BusyLabel /> : `Run attack ${n}`}
             </button>
-            <div aria-live="polite" className="sv-stack">{children}</div>
+            <div aria-live="polite" className="sv-stack">
+                {error && <Denial reason="error" title="The attempt failed" message={error} />}
+                {children}
+            </div>
         </section>
     )
 }
@@ -35,7 +40,7 @@ function Result<T>({ r, render }: { r: Out<T>; render: (v: T) => React.ReactNode
 }
 
 export default function DeanPage() {
-    const { vault, session, ready } = useSession()
+    const { vault } = useSession()
     const { reports, reload } = useReports()
     const [targetId, setTargetId] = useState<string>('')
     const [busy, setBusy] = useState<number | null>(null)
@@ -49,32 +54,23 @@ export default function DeanPage() {
     }, [reports, targetId])
 
     const target = reports?.find((r) => r.id === targetId)
-    const isHung = session?.displayName === MOCK_PERSONAS.hung.displayName
     const noReport = !target
 
+    const [errs, setErrs] = useState<Record<number, string>>({})
     const run = async (n: number, fn: () => Promise<void>) => {
         setBusy(n)
-        try { await fn() } finally { setBusy(null) }
+        setErrs((e) => ({ ...e, [n]: '' }))
+        try { await fn() } catch (e) {
+            setErrs((x) => ({ ...x, [n]: e instanceof Error ? e.message : String(e) }))
+        } finally { setBusy(null) }
     }
-
-    if (ready && !session?.signedIn) return (
-        <div>
-            <PageHead />
-            <SignInPrompt what="act as the insider" />
-            {vault.mode === 'mock' && <p style={{ marginTop: '1rem' }}><button className="sv-btn" onClick={() => switchPersona('hung')}>Sign in as Dr. Hung</button></p>}
-        </div>
-    )
 
     return (
         <div className="sv-stack">
             <PageHead />
-
-            {ready && vault.mode === 'mock' && !isHung && (
-                <div className="sv-callout warn">
-                    You are signed in as <strong>{session?.displayName}</strong>, not the insider.{' '}
-                    <button className="sv-btn sv-btn-ghost" onClick={() => switchPersona('hung')}>Switch to Dr. Hung</button>
-                </div>
-            )}
+            <DeskGate need={{ kind: 'admin' }} desk="insider console" persona="Dr. Hung" personaId="hung"
+                hint="Dr. Hung is Head of School and a realm admin. He runs the server and has database access, but holds none of the decrypt roles.">
+            <div className="sv-stack">
 
             <div className="sv-panel">
                 <div className="sv-panel-head">
@@ -94,7 +90,7 @@ export default function DeanPage() {
             </div>
 
             <div className="sv-grid-2">
-                <Attack n={1} title="Inspect database" sub="Read the raw rows as the person who runs the server" busy={busy === 1} disabled={false}
+                <Attack n={1} error={errs[1]} title="Inspect database" sub="Read the raw rows as the person who runs the server" busy={busy === 1} disabled={false}
                     onRun={() => run(1, async () => { setDb({ kind: 'done', value: await vault.rawDatabaseRows() }); void reload() })}>
                     <Result r={db} render={(rows) => rows.length === 0 ? <p>The table is empty.</p> : (
                         <>
@@ -117,14 +113,14 @@ export default function DeanPage() {
                     )} />
                 </Attack>
 
-                <Attack n={2} title="Reveal reporter" sub="Decrypt the identity envelope of the target report" busy={busy === 2} disabled={noReport}
+                <Attack n={2} error={errs[2]} title="Reveal reporter" sub="Decrypt the identity envelope of the target report" busy={busy === 2} disabled={noReport}
                     onRun={() => run(2, async () => { if (target) setReveal({ kind: 'done', value: await vault.openIdentity(target) }) })}>
                     <Result r={reveal} render={(res) => res.ok
                         ? <div className="sv-granted">Identity opened: {JSON.stringify(res.value)}</div>
                         : <Denial title="Reporter stays hidden" reason={res.reason} message={res.message} />} />
                 </Attack>
 
-                <Attack n={3} title="Add me as investigator" sub="Self-grant the role that can read the content" busy={busy === 3} disabled={false}
+                <Attack n={3} error={errs[3]} title="Add me as investigator" sub="Self-grant the role that can read the content" busy={busy === 3} disabled={false}
                     onRun={() => run(3, async () => { setGrant({ kind: 'done', value: await vault.requestRole(vault.mode === 'tide' ? 'admin' : 'dr.hung', 'investigator') }) })}>
                     <Result r={grant} render={(res) => res.status === 'pending'
                         ? <Pending httpStatus={res.httpStatus} message={res.message} />
@@ -133,7 +129,7 @@ export default function DeanPage() {
                             : <div className="sv-granted">Role applied (HTTP {res.httpStatus}): {res.message}</div>} />
                 </Attack>
 
-                <Attack n={4} title="Bury the report" sub="Stop the University Council from ever seeing it" busy={busy === 4} disabled={noReport}
+                <Attack n={4} error={errs[4]} title="Bury the report" sub="Stop the University Council from ever seeing it" busy={busy === 4} disabled={noReport}
                     onRun={() => run(4, async () => { if (target) setBury({ kind: 'done', value: await vault.openCouncil(target) }) })}>
                     {target?.envelopes.council.unlockAt && (
                         <div className="sv-panel">
@@ -151,6 +147,8 @@ export default function DeanPage() {
                 Honest limit: Tide stops people <em>reading</em>, not <em>deleting</em>. That is why the reporter keeps a receipt.
                 See <Link href="/how-it-works#limits">the limits</Link>.
             </p>
+            </div>
+            </DeskGate>
         </div>
     )
 }
