@@ -43,3 +43,31 @@ test("only the council spec requires a time lock; decrypt roles are distinct", (
   assert.deepEqual(envelopeTags("council", 1800000000), ["sv:council", "DecryptTimeLock:1800000000"]);
   assert.deepEqual(envelopeTags("content"), ["sv:content"]);
 });
+
+import { recordDecision } from "../lib/database/decisionStore.ts";
+
+function withDecisions() {
+  const db = new Database(":memory:");
+  db.exec(`CREATE TABLE pending_policy_requests (id TEXT PRIMARY KEY, requestedBy TEXT, data TEXT);
+    CREATE TABLE policy_request_decisions (
+      id INTEGER PRIMARY KEY AUTOINCREMENT, policy_request_id TEXT NOT NULL, user_vuid TEXT NOT NULL, decision INTEGER,
+      FOREIGN KEY (policy_request_id) REFERENCES pending_policy_requests(id) ON DELETE CASCADE,
+      UNIQUE(policy_request_id, user_vuid));
+    INSERT INTO pending_policy_requests VALUES ('req1', 'hung', 'x');`);
+  return db;
+}
+
+test("a second decision by the same admin is 'already-decided', not an exception (route maps it to 409)", () => {
+  const db = withDecisions();
+  assert.equal(recordDecision(db, "req1", "vuid-hung", false), "recorded");
+  assert.equal(recordDecision(db, "req1", "vuid-hung", false), "already-decided");
+  assert.equal(recordDecision(db, "req1", "vuid-hung", true), "already-decided");
+  assert.equal((db.prepare("SELECT COUNT(*) AS n FROM policy_request_decisions").get() as { n: number }).n, 1);
+});
+
+test("different admins can each decide once; an unknown request is a real error, not a duplicate", () => {
+  const db = withDecisions();
+  assert.equal(recordDecision(db, "req1", "vuid-a", false), "recorded");
+  assert.equal(recordDecision(db, "req1", "vuid-b", true), "recorded");
+  assert.throws(() => recordDecision(db, "nope", "vuid-a", false));
+});

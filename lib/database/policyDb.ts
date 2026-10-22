@@ -7,6 +7,7 @@ const GenericResourceAccessThresholdRoleContract = Contracts.GenericResourceAcce
 import { PolicySignRequest } from 'heimdall-tide';
 import { getAdminPolicy } from '../adminPolicy';
 import { saveCommittedPolicy, getCommittedPolicyB64 } from './committedStore';
+import { recordDecision, type DecisionResult } from './decisionStore';
 import { labelFromParams, type PolicyLabel } from '../policies/labels';
 
 export async function GetAllPendingPolicies() {
@@ -65,14 +66,13 @@ export async function CreatePolicyRequest(request: string, requestedBy: string) 
         .run(id, requestedBy, request);
 }
 
-export async function AddPolicyRequestDecision(request: string, uservuid: string, denied: boolean): Promise<boolean> {
+export async function AddPolicyRequestDecision(request: string, uservuid: string, denied: boolean): Promise<DecisionResult | "error"> {
     try {
         const request_deserialized = PolicySignRequest.decode(base64ToBytes(request));
         if (!request_deserialized.isInitialized()) throw "Request to add has not been initialized";
         const id = request_deserialized.getUniqueId();
 
-        db.prepare('INSERT INTO policy_request_decisions (policy_request_id, user_vuid, decision) VALUES (?, ?, ?)')
-            .run(id, uservuid, denied ? 0 : 1);
+        if (recordDecision(db, id, uservuid, denied) === "already-decided") return "already-decided";
 
         if (!denied) {
             const updatedRequestData = bytesToBase64(request_deserialized.encode());
@@ -80,10 +80,10 @@ export async function AddPolicyRequestDecision(request: string, uservuid: string
                 .run(updatedRequestData, id);
         }
 
-        return true;
+        return "recorded";
     } catch (error) {
         console.error('Error adding policy request decision:', error);
-        return false;
+        return "error";
     }
 }
 

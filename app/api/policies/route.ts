@@ -57,8 +57,9 @@ export async function POST(req: NextRequest) {
             const ok = await CommitPolicyRequest(committed.id, base64ToBytes(committed.signature));
             if (!ok) return NextResponse.json({ error: "Commit refused: unknown request or policy without a known ResourceTag" }, { status: 422 });
         } else if (decision) {
-            const ok = await AddPolicyRequestDecision(policyRequest, userVuid, decision.rejected);
-            if (!ok) return NextResponse.json({ error: "Decision could not be recorded" }, { status: 422 });
+            const result = await AddPolicyRequestDecision(policyRequest, userVuid, decision.rejected);
+            if (result === "already-decided") return NextResponse.json({ error: "already decided" }, { status: 409 });
+            if (result === "error") return NextResponse.json({ error: "Decision could not be recorded" }, { status: 422 });
         } else {
             await CreatePolicyRequest(policyRequest, requestedBy || "unknown");
         }

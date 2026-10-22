@@ -59,7 +59,26 @@ export function useTideVault(): Vault {
   return useMemo(() => buildTideVault(ref), [auth.isAuthenticated, auth.vuid, rolesKey]);
 }
 
-function buildTideVault(ref: { current: AuthCtx }): Vault {
+export type SealProgress = (step: string) => void;
+type TideVault = Vault & {
+  sealWithProgress(draft: ReportDraft, identity: ReporterIdentity, opts: { councilDelaySec?: number } | undefined, onProgress?: SealProgress): Promise<Receipt>;
+};
+
+/**
+ * sealReport with progress callbacks ("Encrypting identity envelope…"), without changing the Vault interface in types.ts.
+ * Falls back to plain sealReport for the mock vault. Errors start with the failing step (see sealWithProgress).
+ */
+export function sealReportWithProgress(
+  vault: Vault, draft: ReportDraft, identity: ReporterIdentity,
+  opts: { councilDelaySec?: number } | undefined, onProgress?: SealProgress,
+): Promise<Receipt> {
+  const v = vault as Partial<TideVault>;
+  return typeof v.sealWithProgress === "function" ? v.sealWithProgress(draft, identity, opts, onProgress) : vault.sealReport(draft, identity, opts);
+}
+
+const msgOf = (e: unknown) => String((e as any)?.message ?? e);
+
+function buildTideVault(ref: { current: AuthCtx }): TideVault {
   const A = () => ref.current;
 
   const session = (): Session => {
@@ -90,32 +109,31 @@ function buildTideVault(ref: { current: AuthCtx }): Vault {
     try {
       policy = await policyBytes(ENVELOPE_LABEL[kind]);
     } catch (e: any) {
-      return { ok: false, reason: "error", message: String(e?.message ?? e) }; // setup problem, not a Tide denial
+      return { ok: false, reason: "error", message: msgOf(e) }; // setup problem, not a Tide denial
     }
     try {
       const [out] = await A().doDecrypt([{ encrypted: env.ciphertext, tags: env.tags }], policy);
       const text = typeof out === "string" ? out : new TextDecoder().decode(out);
       return { ok: true, value: JSON.parse(text) as T };
     } catch (e: any) {
-      const message = String(e?.message ?? e);
+      const message = msgOf(e);
       return { ok: false, reason: classifyDenial(message), message };
     }
   }
 
-  return {
-    mode: "tide",
-    session,
-    async signIn() {
-      try { sessionStorage.setItem("sv-return", location.pathname + location.search); } catch { /* private mode */ }
-      IAMService.doLogin();
-    },
-    async signOut() { IAMService.doLogout(); },
-
-    async sealReport(draft: ReportDraft, identity: ReporterIdentity, opts): Promise<Receipt> {
-      const unlockAt = now() + (opts?.councilDelaySec ?? 180);
-      const content = await encryptEnvelope("content", JSON.stringify(draft));
-      const ident = await encryptEnvelope("identity", JSON.stringify(identity));
-      const council = await encryptEnvelope("council", JSON.stringify(draft), unlockAt);
+  /** Throws Error("<step>: <verbatim Tide/HTTP message>") where step is encrypt content | encrypt identity | encrypt council | POST /api/reports. */
+  async function sealWithProgress(
+    draft: ReportDraft, identity: ReporterIdentity, opts?: { councilDelaySec?: number }, onProgress?: SealProgress,
+  ): Promise<Receipt> {
+    const unlockAt = now() + (opts?.councilDelaySec ?? 180);
+    const step = async <T,>(name: string, label: string, fn: () => Promise<T>): Promise<T> => {
+      onProgress?.(label);
+      try { return await fn(); } catch (e) { throw new Error(`${name}: ${msgOf(e)}`); }
+    };
+    const content = await step("encrypt content", "Encrypting content envelope…", () => encryptEnvelope("content", JSON.stringify(draft)));
+    const ident = await step("encrypt identity", "Encrypting identity envelope…", () => encryptEnvelope("identity", JSON.stringify(identity)));
+    const council = await step("encrypt council", "Encrypting council envelope…", () => encryptEnvelope("council", JSON.stringify(draft), unlockAt));
+    const body = await step("POST /api/reports", "Submitting ciphertext…", async () => {
       // No Authorization header on purpose: the server must not learn who reported.
       const res = await fetch("/api/reports", {
         method: "POST",
@@ -129,13 +147,27 @@ function buildTideVault(ref: { current: AuthCtx }): Vault {
           },
         }),
       });
-      const body = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(body.error ?? `Submit failed (HTTP ${res.status})`);
-      return {
-        reportId: body.id, alias: body.alias, createdAt: body.createdAt, councilUnlockAt: unlockAt,
-        digest: await digestOf([content.ciphertext, ident.ciphertext, council.ciphertext]),
-      };
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(`HTTP ${res.status} ${json.error ?? ""}`.trim());
+      return json as { id: string; alias: string; createdAt: number };
+    });
+    return {
+      reportId: body.id, alias: body.alias, createdAt: body.createdAt, councilUnlockAt: unlockAt,
+      digest: await digestOf([content.ciphertext, ident.ciphertext, council.ciphertext]),
+    };
+  }
+
+  return {
+    mode: "tide",
+    session,
+    async signIn() {
+      try { sessionStorage.setItem("sv-return", location.pathname + location.search); } catch { /* private mode */ }
+      IAMService.doLogin();
     },
+    async signOut() { IAMService.doLogout(); },
+
+    sealReport: (draft, identity, opts) => sealWithProgress(draft, identity, opts),
+    sealWithProgress,
 
     async listReports() {
       const res = await fetch("/api/reports", { headers: await bearer() });
@@ -149,17 +181,21 @@ function buildTideVault(ref: { current: AuthCtx }): Vault {
     openCouncil: (r) => openEnvelope<ReportDraft>(r, "council"),
 
     async requestRole(username: string, role: Role): Promise<RoleRequestResult> {
-      const res = await fetch("/api/admin/grant-role", {
-        method: "POST",
-        headers: { "Content-Type": "application/json", ...(await bearer()) },
-        body: JSON.stringify({ username, role }),
-      });
-      const text = await res.text();
-      return {
-        status: res.status === 202 ? "pending" : res.ok ? "applied" : "error",
-        httpStatus: res.status,
-        message: text || (res.status === 202 ? "Change request parked: quorum approval required" : `HTTP ${res.status}`),
-      };
+      try {
+        const res = await fetch("/api/admin/grant-role", {
+          method: "POST",
+          headers: { "Content-Type": "application/json", ...(await bearer()) },
+          body: JSON.stringify({ username, role }),
+        });
+        const text = await res.text();
+        return {
+          status: res.status === 202 ? "pending" : res.ok ? "applied" : "error",
+          httpStatus: res.status,
+          message: text || (res.status === 202 ? "Change request parked: quorum approval required" : `HTTP ${res.status}`),
+        };
+      } catch (e) {
+        return { status: "error", httpStatus: 0, message: msgOf(e) };
+      }
     },
 
     async rawDatabaseRows() {

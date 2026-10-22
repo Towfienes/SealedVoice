@@ -4,6 +4,8 @@ For a fresh Linux/macOS machine. Needs: Docker, Node >= 20.9, `curl`, `jq`, `sql
 Order matters: **assign every role before adding admins #2 and #3.** After that every realm change is a quorum change request.
 Ports: the app must run on **:3000** (Tide login only redirects there). TideCloak is on :8080.
 
+Versions that matter: the app uses the Tide SDKs **0.14** (`@tidecloak/js`, `@tideorg/js`, `heimdall-tide`, `asgard-tide`). The upstream quickstart pins 0.13.21, which cannot parse the v4 admin policy that the current `tidecloak-stg-dev` image exports (`Unknown policy version: 4`). Policies are therefore created as **v4** (`lib/policies/flow.ts`). Do not downgrade the SDKs.
+
 Status of this document: written by WT-A from the repo scripts and the AGENTS.md rules. **WT-A did not run any step of it on a clean machine.** Steps that most need a first-run check: `npm run init` (step 2), the admin #2/#3 snippet (step 7) and `scripts/invite-user.sh`. If something fails, copy the exact error text and report it.
 
 ## 1. Clone and install
@@ -21,66 +23,60 @@ npm run init
 Notes: `init/start.sh` calls `sudo docker`. If your Docker works without sudo and the container already exists, use `bash scripts/start-tidecloak.sh` to start it and `EXPORT_ONLY=1 bash init/tcinit.sh` to refresh the two data files.
 Check: `curl -s http://localhost:8080/realms/forseti-test/.well-known/openid-configuration | jq .issuer`
 
-## 3. Start the app
+## 3. Start the app (production build, port 3000)
+`NEXT_PUBLIC_VAULT` is baked in at build time, so build **after** creating `.env.local`:
 ```bash
-npm run dev          # http://localhost:3000, uses NEXT_PUBLIC_VAULT from .env.local
+npm run build && npm start        # http://localhost:3000
 ```
+(`npm run dev` also works for development. Tide login only redirects to :3000.) Rebuild after any code or `.env.local` change.
 
-## 4. Personas (roles and users) in phases
+## 4. Personas: the exact phase order
 The free Tide licence allows **4 accounts**: `admin` (Dr. Hung), `mai` (student), `council` (Inspector Lan, investigator), `minh` (Guardian Minh: identity-guardian + council seat).
-While the realm has one admin, change requests are parked until Dr. Hung commits them in tide-console.
+While the realm has one admin, every change is parked as a change request until Dr. Hung **approves and commits** it in tide-console (`bash scripts/open-persona.sh hung console`). REST can never commit. Phases:
 ```bash
-bash scripts/setup-personas.sh submit   # creates roles + users -> change requests
-bash scripts/open-persona.sh hung console
+bash scripts/setup-personas.sh submit   # 1. roles + users           -> change requests
+# tide-console as Dr. Hung: approve + commit all (roles first, then users)
+bash scripts/setup-personas.sh map      # 2. role mappings           -> change requests
+# approve + commit all
+bash scripts/setup-personas.sh invite   # 3. writes data/invite-links.txt (gitignored)
+# step 5 below: enroll each persona, step 6: commit the 3 policies
+bash scripts/setup-personas.sh admins   # 4. LAST: admins #2/#3 (council, minh) -> quorum
+# approve + commit both, council and minh sign out and in, then:
+EXPORT_ONLY=1 bash init/tcinit.sh       # refresh data/tidecloak.json + data/admin-policy.b64
+bash scripts/setup-personas.sh status   # any time: tide-linked? roles? pending requests?
 ```
-In tide-console (as Dr. Hung): **approve, then commit** every pending request. Roles first, then users. Then:
-```bash
-bash scripts/setup-personas.sh map      # role mappings -> more change requests
-```
-Approve + commit those too, then:
-```bash
-bash scripts/setup-personas.sh invite   # writes data/invite-links.txt (gitignored)
-bash scripts/setup-personas.sh status   # every user should say "tide-linked" after step 5, with roles listed
-```
+Commit the three policies (step 6) **before** `admins`: afterwards every realm change and policy approval needs a second admin's enclave approval.
 
 ## 5. One Chromium profile per persona
-Each persona needs its own browser profile (separate Tide session).
+Each persona needs its own browser profile (separate Tide session). Usage: `bash scripts/open-persona.sh <hung|mai|council|minh> [invite|app|console|/path]` (`/path` opens that page of the app, e.g. `/investigator`).
 ```bash
 bash scripts/open-persona.sh mai invite        # enroll Mai in the Tide enclave
 bash scripts/open-persona.sh council invite    # Inspector Lan (Tide user `council`)
 bash scripts/open-persona.sh minh invite       # Guardian Minh
-bash scripts/open-persona.sh hung app          # Dr. Hung, already enrolled in step 2
+bash scripts/open-persona.sh hung /admin/policies   # Dr. Hung, already enrolled in step 2
 ```
-After enrolling, open the app per persona: `bash scripts/open-persona.sh <mai|council|minh|hung> app` (the `lan` name also works as a profile name).
-Sign in once per persona at http://localhost:3000. Role changes only show in the token after a fresh login.
+After enrolling, open the app per persona: `bash scripts/open-persona.sh <mai|council|minh|hung> app`.
+Sign in once per persona at http://localhost:3000. Role changes only show in the token after a fresh sign-in.
 
 ## 6. Commit the three policies (Dr. Hung)
-Open `/admin/policies` in Dr. Hung's profile. For each of `investigator`, `guardian`, `council`: **1 Create, 2 Approve, 3 Commit**. Each step opens the Tide enclave. The contract is frozen: editing `contracts/SealedVoicePolicy.cs` changes the contract ID and forces all three to be re-created.
+Open `/admin/policies` in Dr. Hung's profile (policy version 4, see the SDK note at the top). For each of `investigator`, `guardian`, `council`: **1 Create, 2 Approve, 3 Commit**. Each step opens the Tide enclave. The contract is frozen: editing `contracts/SealedVoicePolicy.cs` changes the contract ID and forces all three to be re-created.
 Check: `sqlite3 db/database.sqlite 'select roleId, length(data) from committed_policies'` shows `council`, `guardian`, `investigator`.
 (`bash scripts/reset-demo.sh` wipes reports and policies in the app database. TideCloak is untouched.)
 
 ## 7. Admins #2 and #3 (turns on quorum)
-Quorum is `max(1, floor(0.7 * N))`, so it needs 3 admins to be 2-of-3. Do this **last**, after every role mapping from step 4 is committed.
+Quorum is `max(1, floor(0.7 * N))`: with 3 admins it is 2-of-3. Do this **last**, after every role mapping and the three policies are committed.
 ```bash
-URL=http://localhost:8080; R=forseti-test
-T=$(curl -s -X POST $URL/realms/master/protocol/openid-connect/token -d username=admin -d password=password -d grant_type=password -d client_id=admin-cli | jq -r .access_token)
-RM=$(curl -s "$URL/admin/realms/$R/clients?clientId=realm-management" -H "Authorization: Bearer $T" | jq -r '.[0].id')
-ROLE=$(curl -s "$URL/admin/realms/$R/clients/$RM/roles/tide-realm-admin" -H "Authorization: Bearer $T")
-for u in council minh; do
-  id=$(curl -s "$URL/admin/realms/$R/users?username=$u&exact=true" -H "Authorization: Bearer $T" | jq -r '.[0].id')
-  curl -s -o /dev/null -w "$u -> %{http_code}\n" -X POST "$URL/admin/realms/$R/users/$id/role-mappings/clients/$RM" \
-    -H "Authorization: Bearer $T" -H 'Content-Type: application/json' -d "[$ROLE]"
-done
+bash scripts/setup-personas.sh admins
 ```
-Each prints `202` (parked). In tide-console as Dr. Hung: approve + commit both. Admins #2 and #3 then log in again to pick up `tide-realm-admin`.
-From now on, Dr. Hung's self-grant (the `/dean` scene) returns **202 pending** and needs a second admin's enclave approval.
+It submits the `realm-management` / `tide-realm-admin` client-role grant for `council` and `minh` (each prints `202`, parked), lists the pending change requests, and reminds you of the follow-up. In tide-console as Dr. Hung: approve + commit both. Then `council` and `minh` sign out and in, and run `EXPORT_ONLY=1 bash init/tcinit.sh`.
+From now on Dr. Hung's self-grant (the `/dean` scene) returns **202 pending** and needs a second admin's enclave approval.
 
 ## 8. Smoke test
 1. Mai (`/report`): file a report. Expect a receipt with alias, digest and council unlock time.
 2. Inspector Lan (`/investigator`): content opens, identity is denied with the exact ORK text.
 3. Guardian Minh (`/guardian`): identity opens. `/council` before unlock shows `Time lock preventing decryption until <epoch>`.
 4. Dr. Hung (`/dean`): database rows are ciphertext, reveal is denied, self-grant is 202.
-5. Optional, council role only: `/admin/lab` (dev page, not linked) tries the council envelope with the stored tags, with the lock changed to a past epoch, and with the lock removed.
+5. Optional, council role only (Guardian Minh): `/admin/lab` (dev page, not linked). One click, "Try council envelope with forged past time lock", shows side by side what the ORK says for the stored tags and for a lock forged to a past epoch.
 6. Wire-level checks: `bash scripts/security-tests.sh` (header explains how to copy the four tokens).
 
 ## Troubleshooting
