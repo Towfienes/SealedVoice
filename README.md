@@ -3,7 +3,7 @@
   <img src="public/brand/logo-wordmark.svg" alt="SealedVoice" width="420">
 </picture>
 
-[![Built with TideCloak](https://tide.org/badges/built-with-tidecloak.svg)](https://tide.org/tidecloak?utm_source=github&utm_medium=readme&utm_campaign=unlocked)
+[![Built with TideCloak](https://tide.org/badges/built-with-tidecloak.svg)](https://tide.org/tidecloak?utm_source=github&utm_medium=readme&utm_campaign=unlocked) [![License: MIT](https://img.shields.io/badge/License-MIT-1f3b6f.svg)](LICENSE) [![Next.js 16](https://img.shields.io/badge/Next.js-16-111.svg)](https://nextjs.org) [![Tests 56 passing](https://img.shields.io/badge/tests-56%20passing-2e7d32.svg)](tests) [![Demo video](https://img.shields.io/badge/demo-1%3A48-b23a2e.svg)](Video.mp4)
 
 ## Project overview
 
@@ -95,3 +95,6 @@ See [the detailed live setup and four-account mapping](docs/SETUP-LIVE.md). The 
 Built on [tide-foundation/forseti-crypto-quickstart](https://github.com/tide-foundation/forseti-crypto-quickstart).
 Token-verifier tests and the original trust/attack analyses were adapted from the team's SealedBid work. [TideCloak](https://tide.org/tidecloak) provides the intended identity, policy and threshold-cryptography infrastructure. All demo personas and reports are synthetic.
 Original SVG artwork, outlined font sources and retained licence notices are listed in [visual credits](docs/CREDITS.md).
+
+## License
+Original work by Team Fprinciples is released under the [MIT License](LICENSE). Template code from [forseti-crypto-quickstart](https://github.com/tide-foundation/forseti-crypto-quickstart), Tide packages and the TideCloak badge remain under Tide Foundation's terms; fonts are under the [SIL Open Font License](docs/brand/licenses). See [LICENSE](LICENSE) for the full notice.
