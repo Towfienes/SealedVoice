@@ -15,22 +15,26 @@ Built with [TideCloak](https://tide.org/tidecloak?utm_source=github&utm_medium=r
 Students should be able to report misconduct even when the accused controls the institution's IT. SealedVoice separates a verified identity from an investigation. Unlike CoverDrop's concealed contact or Callisto's matching escrow, our focus is verified-but-sealed reporting inside a university. See [related work](docs/SOTA.md).
 
 ### 2. Trust constraint insight
-The design starts from the named-report requirement described in our [spec](specs/001-sealedvoice/spec.md). A conventional reporting portal asks students to trust the very administrator they may accuse: that administrator controls storage, permissions and the application.
+Vietnam's [Law on Denunciation (2018)](https://noichinh.vn/hoi-dap-phap-luat/202001/tiep-nhan-xu-ly-ban-dau-thong-tin-to-cao-va-viec-tiep-nhan-xu-ly-thong-tin-co-noi-dung-to-cao-307456/) requires the reporter's name and address. Anonymous reports are generally not processed as denunciations, though concrete evidence can prompt inspection. At a university, the accused may also control the reporting system: the student must trust the very administrator she accuses.
 
 ### 3. Value & impact
 Mai receives a pseudonymous receipt. Inspector Lan reads the allegation without the identity. Guardian Minh verifies the student separately. A timed council copy provides an escalation path, provided the ciphertext remains available.
 
 ### 4. Why TideCloak matters
-**VERIFIED LIVE (lead, 15:32 VN):** TideCloak login for four personas, Tide-issued roles, three Forseti policies committed through the Tide enclave, and QEA pending change requests. **NOT VERIFIED LIVE:** end-to-end seal/decrypt, blocked by network issues. Pending requests do not establish completed quorum approval or ORK enforcement. A one-admin realm can self-approve; 2-of-3 requires three admins.
+Forseti policies on Tide's ORK network decide decryption, not our server. Role changes go through TideCloak QEA approval requests, so an application admin cannot silently self-grant.
+
+Live-verified: TideCloak login for 4 personas, Tide-issued roles, 3 Forseti policies committed via the Tide enclave, QEA pending requests. Not yet run live end-to-end: seal/decrypt (network).
 
 ![Four-layer architecture and insider blocks](docs/architecture.png)
 
 ### 5. Prototype & storytelling
-The demo follows Mai, Lan, Minh and insider Dr. Hung through submission, investigation, identity denial, a pending self-grant and council escalation. **Mocked mode simulates encryption, roles, quorum and time locks; it proves no Tide security guarantee.** The video uses mock-mode screen capture; see [validation status](docs/VALIDATION.md) for the live boundary.
+The demo follows Mai, Lan, Minh and insider Dr. Hung through submission, investigation, identity denial, a pending self-grant and council escalation. **The video uses mock-mode capture: encryption, roles, quorum and time locks are simulated.** See [validation status](docs/VALIDATION.md) for the live boundary.
 
 ## Demo video
 
-[Video.mp4](Video.mp4) — target: at most 2:00 and under 100 MB. Recording is pending; the [shot list and English narration](docs/DEMO_SCRIPT.md) are ready for production.
+[Watch the 2-minute demo](Video.mp4)
+
+[Shot list and English narration](docs/DEMO_SCRIPT.md).
 
 [Video title cards](docs/video) · [Visual handoff](docs/brand/README.md) · [Asset credits](docs/CREDITS.md).
 
@@ -79,7 +83,7 @@ See [the detailed live setup and four-account mapping](docs/SETUP-LIVE.md). The 
 - The browser is the trust boundary. A compromised browser, extension or server-delivered JavaScript can capture plaintext before sealing or after opening.
 - Mock mode stores plaintext locally and its digest is a placeholder, not a cryptographic integrity proof. Do not enter real reports.
 - Bearer-token replay and DPoP proof replay need separate controls; see [attack vectors](docs/ATTACK-VECTORS.md). Tide-issued roles and pending QEA requests were observed live; decrypt-role/tag enforcement, council timing and completed quorum approval were not verified end to end.
-- A guardian can disclose identities they legitimately open; colluding administrators and unavailable ORKs remain threats.
+- A one-admin realm can approve its own pending requests; 2-of-3 requires three distinct admins and committed grants. A guardian can disclose identities they legitimately open; colluding administrators and unavailable ORKs remain threats.
 
 ## Credits
 Built on [tide-foundation/forseti-crypto-quickstart](https://github.com/tide-foundation/forseti-crypto-quickstart).
