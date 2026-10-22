@@ -6,6 +6,8 @@ type Policy = InstanceType<typeof Policy>;
 const GenericResourceAccessThresholdRoleContract = Contracts.GenericResourceAccessThresholdRoleContract;
 import { PolicySignRequest } from 'heimdall-tide';
 import { getAdminPolicy } from '../adminPolicy';
+import { saveCommittedPolicy, getCommittedPolicyB64 } from './committedStore';
+import { labelFromParams, type PolicyLabel } from '../policies/labels';
 
 export async function GetAllPendingPolicies() {
     const rows = db.prepare('SELECT * FROM pending_policy_requests')
@@ -95,11 +97,9 @@ export async function CommitPolicyRequest(id: string, policySignature: Uint8Arra
         const request = PolicySignRequest.decode(base64ToBytes(row.data));
         const policy = request.getRequestedPolicy();
         policy.signature = policySignature;
-        const role = policy.params.entries.get("role") || policy.modelIds[0];
-        const serializedPolicy = bytesToBase64(policy.toBytes());
-
-        db.prepare('INSERT OR REPLACE INTO committed_policies (roleId, data) VALUES (?, ?)')
-            .run(role, serializedPolicy);
+        const label = labelFromParams(policy.params.entries);
+        if (!label) throw new Error("Policy has no known ResourceTag; refusing to store it under an ambiguous key");
+        saveCommittedPolicy(db, label, bytesToBase64(policy.toBytes()));
 
         db.prepare('DELETE FROM pending_policy_requests WHERE id = ?')
             .run(id);
@@ -115,6 +115,11 @@ export function ClearAllPolicies() {
     db.prepare('DELETE FROM policy_request_decisions').run();
     db.prepare('DELETE FROM pending_policy_requests').run();
     db.prepare('DELETE FROM committed_policies').run();
+}
+
+export function getCommittedPolicy(label: PolicyLabel): Policy | null {
+    const b64 = getCommittedPolicyB64(db, label);
+    return b64 ? Policy.from(base64ToBytes(b64)) : null;
 }
 
 export async function GetAllCommittedPolicies(): Promise<Policy[]> {
