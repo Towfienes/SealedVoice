@@ -1,9 +1,10 @@
-// contracts/SealedBidPolicy.cs
+// contracts/SealedVoicePolicy.cs  (single source of truth; lib/forsetiContract.ts is generated from it,
+// tests/contract.test.ts fails if the two drift)
 //
 // Drop-in replacement for the default contract in
 // forseti-crypto-quickstart/template-ts-app/lib/forsetiContract.ts
 //
-// Three changes from the upstream contract, each closing a real hole:
+// Four changes from the upstream contract, each closing a real hole:
 //
 //  1. FAIL-CLOSED ROLES. Upstream returns `PolicyDecision.Allow()` when
 //     DecryptionRealmRole is null ("no restrictions on executor"). One missing
@@ -21,6 +22,12 @@
 //     set does not contain the resource tag, so a payload sealed for one purpose
 //     cannot be replayed against another.
 //
+//  4. TIME LOCK IS A POLICY PARAMETER. RequireTimeLock (int) is set by the policy, which is
+//     committed by admin quorum, not by the client. RequireTimeLock=1 (council policy): a decryption
+//     with no DecryptTimeLock tag, a malformed one, or one that has not passed is DENIED.
+//     RequireTimeLock=0 (investigator/guardian): no lock is needed, but a malformed lock tag is
+//     still denied and a lock that is present and not yet passed is still honoured.
+//
 // Contract ID = SHA512(source). Any edit changes the ID, which means the policy
 // must be re-created, re-approved by quorum and re-committed. That is the point.
 
@@ -33,14 +40,17 @@ using System.Text;
 
 public class Contract : IAccessPolicy
 {
-    [PolicyParam(Required = true, Description = "Role required to seal a bid")]
+    [PolicyParam(Required = true, Description = "Role required to seal a report")]
     public string EncryptionRealmRole { get; set; }
 
-    [PolicyParam(Required = true, Description = "Role required to open a sealed bid")]
+    [PolicyParam(Required = true, Description = "Role required to open a sealed report")]
     public string DecryptionRealmRole { get; set; }
 
-    [PolicyParam(Required = true, Description = "Tag that marks a sealed-bid payload, e.g. bid")]
+    [PolicyParam(Required = true, Description = "Tag that marks the envelope kind, e.g. sv:content")]
     public string ResourceTag { get; set; }
+
+    [PolicyParam(Required = false, Description = "1 = every decryption must carry a DecryptTimeLock tag that has passed")]
+    public int RequireTimeLock { get; set; }
 
     private bool isEncryptionRequest = false;
     private List<string> DataTags = new();
@@ -94,10 +104,10 @@ public class Contract : IAccessPolicy
         if (!DataTags.Contains(ResourceTag))
         {
             return PolicyDecision.Deny(
-                "Payload is not tagged as '" + ResourceTag + "'; refusing to treat it as a sealed bid");
+                "Payload is not tagged as '" + ResourceTag + "'; refusing to treat it as this envelope kind");
         }
 
-        // ── Change 2: the time lock is mandatory on decryption, not opt-in by the client.
+        // ── Change 2: time lock: enforced when present, mandatory when RequireTimeLock=1 (set by policy, not client).
         if (!isEncryptionRequest)
         {
             int? lockEpoch = null;
@@ -116,16 +126,19 @@ public class Contract : IAccessPolicy
                 }
             }
 
-            if (!lockEpoch.HasValue)
+            if (RequireTimeLock == 1 && !lockEpoch.HasValue)
             {
                 return PolicyDecision.Deny(
-                    "Sealed bids must carry a DecryptTimeLock tag; refusing an unbounded decryption");
+                    "This policy requires a DecryptTimeLock tag; refusing an unbounded decryption");
             }
 
-            var currentTime = (int)Utils.GetEpochSeconds();
-            if (currentTime < lockEpoch.Value)
+            if (lockEpoch.HasValue)
             {
-                return PolicyDecision.Deny("Time lock preventing decryption until " + lockEpoch.Value);
+                var currentTime = (int)Utils.GetEpochSeconds();
+                if (currentTime < lockEpoch.Value)
+                {
+                    return PolicyDecision.Deny("Time lock preventing decryption until " + lockEpoch.Value);
+                }
             }
         }
 

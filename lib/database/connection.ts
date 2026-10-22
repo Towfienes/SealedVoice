@@ -1,6 +1,7 @@
 import path from 'path';
 import fs from 'fs';
 import Database from 'better-sqlite3';
+import { initReportsSchema } from '../reports';
 
 const dbPath: string = process.env.DATABASE_PATH || path.join(process.cwd(), 'db', 'database.sqlite');
 
@@ -34,3 +35,4 @@ export function initializeDatabase() {
 }
 
 initializeDatabase();
+initReportsSchema(db);
