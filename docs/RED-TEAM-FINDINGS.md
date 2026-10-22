@@ -1,4 +1,27 @@
-# T42 — localhost red-team findings
+# T42 — localhost red-team findings and reassessment
+
+## Current reassessment after UI/API integration
+
+The original table below is historical, against `553eae6`. A follow-up review at `7f5ebaa` (Codex rebased onto integrated `main` `358b364`) found several source fixes. Unit tests now pass **41/41**. Live Tide remains unavailable. Initial HTTP rechecks timed out while Next dev was starting; these source assessments are not live ORK/QEA verdicts.
+
+| Finding | Current assessment | Evidence and remaining action |
+|---|---|---|
+| Missing report flow / mock selected as Tide | Resolved in source; live unverified | Real routes and `useTideVault()` now exist. Three separate encrypt calls; POST uses `credentials: "omit"` without Authorization. Capture real browser/Tide behavior. |
+| Missing roles / omitted or malformed required council lock | Resolved in source; live unverified | Generated imported contract matches hardened `.cs`; synchronization test passes. Recommit policies to the new contract ID and test actual ORK denials. |
+| Unauthenticated policy writes / DELETE | Resolved in source; HTTP verification pending | Admin gate now uses the verifier; DELETE export removed. Committed-policy GET is intentionally public. |
+| Policy overwrite | Resolved in storage tests | Explicit labels; three labels coexist and recommitting replaces only one. Verify real committed policies' roles, tags and contract IDs. |
+| First-batch-item-only checks | Outstanding P1; live exploit untested | Contract still reads only the first item. Separate calls protect the normal UI path, not a custom client. Reject batches or validate every item; verify tag binding live. |
+| DPoP `ath` / `jti` / proof replay | Outstanding P2, previously reproduced | Verifier unchanged; now reached through server auth. Add hash binding, required proof IDs, replay cache and correct authorization-scheme handling. |
+| Supplied policy decision actor / commit signature | Outstanding P2, narrowed to authenticated admins | Route still accepts caller identity fields and helper persists supplied signature without local verification. Derive actor from token and validate signed material. No ORK quorum bypass demonstrated. |
+| Base64 validation / client-selected council epoch | Outstanding P2 validation limit | Inline `validateReportBody()` accepts base64-encoded synthetic plaintext and `unlockAt:1`. Format checks do not prove encryption or a minimum future delay. No HTTP submission was made. |
+| Mock receipt / live integrity scope | Mock intentionally insecure; live improved | Live receipt hashes three ciphertexts with truncated SHA-256, but excludes tags/unlock metadata and has no verification workflow. Keep mock labels and synthetic-only guidance. |
+| Stale security script | Updated in source; execution pending | Script now targets report routes and actual DB/schema. No mutating probes were run during this review. |
+| Quorum, investigator/guardian separation, council timing | Live validation still pending | Need genuine sessions, committed policies, exact ORK denials and real pending-role/threshold evidence. Mock results cannot establish these. |
+| Metadata, withholding, malicious delivered code | Architectural limits remain | IP/timing/log correlation, storage suppression and modified client code remain possible. Keep README limits explicit. |
+
+Current priorities: complete the genuine Tide gate; close batch/tag contract gaps; fix DPoP verification. No live confidentiality or quorum bypass was established and no P0 was observed in this reassessment.
+
+## Historical initial review
 
 Date: 22 October 2026. Baseline: `553eae655e5ece82aa9a38b797ad4b142428c15d`, with the current Codex documentation/test changes. A separate Codex context read `docs/RED-TEAM-PROMPT.md` and performed read-only localhost probes, source inspection and an in-memory synthetic-token reproduction. No repo files, existing policies or reports were modified by the reviewer; no mutating HTTP, DELETE, DoS or public ORK requests were made.
 

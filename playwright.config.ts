@@ -20,8 +20,8 @@ export default defineConfig({
       use: { ...devices["Desktop Chrome"] },
     },
     {
-      name: "ui-readiness",
-      testMatch: "ui-readiness.spec.ts",
+      name: "mock-ui",
+      testMatch: /ui.*\.spec\.ts/,
       use: { ...devices["Desktop Chrome"] },
     },
   ],

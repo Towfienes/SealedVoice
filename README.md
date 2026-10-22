@@ -38,7 +38,7 @@ npm run build
 NEXT_PUBLIC_VAULT=mock npm run dev
 ```
 
-Open <http://localhost:3000>. Mock mode needs no Tide account and uses synthetic data in this browser's localStorage, including plaintext under `sv-mock-plain`. Use it only for development. The SealedVoice UI and mock-provider wiring are still awaiting integration on the bootstrap revision; a running dev server alone does not mean the reporting flow is ready. See [validation status](docs/VALIDATION.md) for the revision tested.
+Open <http://localhost:3000>. Mock mode needs no Tide account and uses synthetic data in this browser's localStorage, including plaintext under `sv-mock-plain`. Use the **Signed in as** selector to choose Mai, file a report, then switch personas on the investigator, guardian, insider and council pages. Use it only for development; see [validation status](docs/VALIDATION.md) for the revision tested.
 
 ### Browser acceptance tests
 
@@ -47,7 +47,7 @@ npx playwright install chromium
 npm run test:e2e
 ```
 
-The test server runs with `NEXT_PUBLIC_VAULT=mock` on port 3000; stop another dev server first. Tests cover US1–US5 with synthetic data. Mock results are not evidence of real encryption, anonymous HTTP submission, QEA or ORK enforcement.
+The test server runs with `NEXT_PUBLIC_VAULT=mock` on port 3000; stop another dev server first. Tests cover US1–US5 through both the browser vault and actual form/persona interactions. If Google Chrome is installed, use `PLAYWRIGHT_CHANNEL=chrome npm run test:e2e` to use it instead of managed Chromium. Mock results are not evidence of real encryption, anonymous HTTP submission, QEA or ORK enforcement.
 
 ### Live TideCloak setup
 
@@ -58,9 +58,9 @@ This path requires Docker with its daemon running, Bash, curl, jq and a Tide sub
 3. Run `bash scripts/setup-personas.sh submit`. In the realm's Tide console, approve and commit the role requests first, then the user requests. Run `bash scripts/setup-personas.sh map`, approve and commit those mappings, then `bash scripts/setup-personas.sh invite`. Invitation links are saved to ignored `data/invite-links.txt`.
 4. Use separate browser profiles for each persona. The Linux Chromium helper is `bash scripts/open-persona.sh <persona> invite`; on macOS, open the saved invitation link manually in the appropriate profile. The four-account licence requires the lead's persona mapping in the spec; do not enroll extra accounts blindly.
 5. Have the lead verify three distinct realm admins and a two-admin approval threshold. Refresh local config with `EXPORT_ONLY=1 bash init/tcinit.sh`. Keep `data/tidecloak.json` and `data/admin-policy.b64` private.
-6. After the Tide/API and UI streams integrate, commit the investigator, guardian and council policies, then start `NEXT_PUBLIC_VAULT=tide npm run dev`. Verify the live checklist in [TRUST-MODEL.md](docs/TRUST-MODEL.md) before claiming the demo is secured by Tide.
+6. At `/admin/policies`, commit the investigator, guardian and council policies, then use `NEXT_PUBLIC_VAULT=tide npm run dev`. Verify the live checklist in [TRUST-MODEL.md](docs/TRUST-MODEL.md) before claiming the demo is secured by Tide.
 
-Live setup is not yet certified from a fresh clone. It needs interactive enrollment and the integrated Tide vault; see [validation status](docs/VALIDATION.md).
+Live setup is not yet certified from a fresh clone. It needs interactive enrollment, committed policies and real ORK/QEA checks; see [validation status](docs/VALIDATION.md).
 
 ## Limits
 - Writing style, evidence or contextual details can identify a reporter.

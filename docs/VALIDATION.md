@@ -1,16 +1,29 @@
 # Codex validation status
 
-Baseline: `553eae655e5ece82aa9a38b797ad4b142428c15d` (`main`, 22 October 2026). Codex branch: `docs/codex`. Local environment: macOS arm64, Node v24.5.0, npm 11.6.4. This is an in-progress record, not live security certification.
+Initial baseline: `553eae6`. Current integration baseline: `358b364` (`main`, 22 October 2026), with Codex docs/tests on `docs/codex` ([PR #3](https://github.com/Towfienes/SealedVoice/pull/3)). Local environment: macOS arm64, Node v24.5.0, npm 11.6.4, installed Google Chrome. This record is not live Tide security certification.
 
 | Task | Work delivered | Verification / remaining work |
 |---|---|---|
 | T20 | README badge and original sentence preserved; five judging sections, Setup, Limits and Credits written. | `bash scripts/wordcount.sh`: **239** words; below 300. Setup distinguishes mock behavior from unverified live integration. |
 | T21 | Two-minute English narration and per-persona shot list; trust and attack documents adapted to reporter/investigator/guardian/council. | Four timed sections total 120 seconds. Recording is pending; no `Video.mp4` has been produced. |
-| T22 | Student/investigator/report fixtures; test-runner fix; Playwright mock-vault US1–US5 coverage and explicit UI-readiness check prepared. | **26 unit tests pass, 0 fail** using the corrected test command. Browser execution and build are pending in this first progress commit. Full UI interactions require integrated pages. |
-| T42 | Fresh-context, report-only localhost red-team review completed. | [Findings](RED-TEAM-FINDINGS.md): missing live routes, policy API authorization gaps, fail-open imported contract, DPoP replay/binding gaps. Real ORK/QEA behavior remains untested. |
-| T51 | Initial clone/install and Setup issues investigated. | Separate clean-clone verification and final post-integration rerun remain pending. |
+| T22 | Student/investigator/report fixtures; test-runner fix; Playwright vault and actual UI workflows for US1–US5. | **41 unit tests and 12 browser tests pass, 0 fail** after integration. App and test TypeScript checks pass; production build passes. |
+| T42 | Fresh-context, report-only localhost review plus post-integration source reassessment. | [Findings](RED-TEAM-FINDINGS.md) preserve history and distinguish source fixes from outstanding batch/tag and DPoP gaps. Real ORK/QEA behavior remains untested. |
+| T51 | Initial Setup issues found; isolated clean-clone check in progress. | Final live clone/login/enrollment validation remains pending a working Tide environment. |
 
-## Commands observed so far
+## Current validation
+
+- `npm test`: **41 tests, 41 pass, 0 fail**.
+- `PLAYWRIGHT_CHANNEL=chrome npm run test:e2e`: **12 passed (59.0s)**, zero retries. Six vault-harness tests plus five actual UI workflows and one route/label readiness test.
+- `npm run build`: **exit 0**; all 18 static pages generated and API routes included. Existing SDK re-export warnings and the local multiple-lockfile warning remain.
+- `npx tsc --noEmit`: **exit 0**.
+- Explicit strict TypeScript check of `e2e/*.ts`, config and verifier tests: **exit 0**. The package has no lint script; `git diff --check` also passes.
+- `bash scripts/wordcount.sh`: **239**, below 300.
+
+One dev-server attempt after rebasing timed out at startup. Preserving the old `.next/dev` cache outside the checkout and rebuilding a fresh cache restored startup; the subsequent full suite passed. No app/config source was changed to suppress the issue.
+
+Mock mode still requests the missing Tide adapter through the inherited AuthProvider: `/api/tidecloakAdapter` returns 500 and the SDK attempts an undefined discovery path. The mock reporting UI works and the tests do not intercept these requests. This fresh-setup issue belongs to the AuthProvider owner; no private config was fabricated to hide it.
+
+## Historical bootstrap observations
 
 - `git clone https://github.com/Towfienes/SealedVoice`: succeeded after network permission was enabled.
 - `git checkout -b docs/codex`: succeeded.
@@ -23,8 +36,8 @@ Baseline: `553eae655e5ece82aa9a38b797ad4b142428c15d` (`main`, 22 October 2026). 
 - `/api/tidecloakAdapter`: 500, `{"error":"Failed to read tidecloak.json"}` on this fresh checkout. No private adapter config was fabricated.
 - `docker info`: Docker daemon unavailable on this machine. TideCloak `localhost:8080` is not running; account enrollment, terms acceptance and live policy/quorum checks were not performed.
 
-## Lead integration dependencies
+## Remaining live validation
 
-The UI/Tide/API streams own the missing routes and live vault. Codex has not changed `app/`, `lib/`, contracts, init scripts or security scripts. A green verifier test is not proof those routes enforce tokens; a mock pending status is not a real HTTP 202; a mock browser time lock is not an ORK result.
+The UI/Tide/API streams have integrated routes and the live vault. Codex has not changed `app/`, `lib/`, contracts, init scripts or security scripts. A mock pending status is not a real HTTP 202; a mock browser time lock is not an ORK result.
 
-The default Playwright run includes a UI-readiness project that must fail while the required routes and SIMULATED label are absent. Do not skip or relabel that failure as complete UI acceptance. After integration, add selectors from the actual UI, run form/persona workflows, rerun the live red-team checks and perform a final fresh clone before submission.
+The default Playwright run now passes on the integrated UI. Still required: genuine login/enrollment, committed policies, direct investigator/guardian denials, real quorum pending/commit behavior, council ORK before/after timing and the final pre-submission clone on the final revision. Keep all simulated scenes labelled and preserve the report's architectural limits.

@@ -1,11 +1,11 @@
 # Browser coverage
 
-`npm run test:e2e` starts the real Next dev server with `NEXT_PUBLIC_VAULT=mock` on localhost:3000 and runs two projects. It refuses to reuse a possibly live Tide server. Install Chromium first with `npx playwright install chromium`.
+`npm run test:e2e` starts the real Next dev server with `NEXT_PUBLIC_VAULT=mock` on 127.0.0.1:3000 and runs two projects. It refuses to reuse a possibly live Tide server. Install Chromium first with `npx playwright install chromium`.
 
 - **mock-vault:** six browser tests exercise the production `lib/vault/mock.ts` implementation using isolated browser localStorage and a test-only HTML harness. The harness transpiles that source without changing app code or replacing the vault logic. US1–US5 cover receipts/envelopes, investigator/guardian separation, simulated insider denial/pending role request and the exact council time boundary. An extra test checks signed-out reads.
-- **ui-readiness:** real HTTP route checks and a visible SIMULATED-label check. This intentionally fails on the bootstrap revision until the UI stream integrates the reporting pages. It is a prerequisite check, **not** a complete form-to-receipt UI test.
+- **mock-ui:** real HTTP route readiness and a visible SIMULATED-label check, plus five actual UI workflows using implemented accessible labels: Mai submits and downloads/reloads a receipt; Lan sees content and identity denial; Minh verifies identity and content denial; Hung tries four insider actions and still cannot read content after the pending grant; council is denied before unlock and opens the same report at the boundary. Every workflow submits its own report through the form in an isolated browser context.
 
-Run only the available vault coverage with `npm run test:e2e -- --project=mock-vault`. A green result here does not establish a working SealedVoice interface. After UI integration, add form submission and actual persona interactions using the implemented accessible labels; do not guess selectors or substitute a fake app.
+Run only vault coverage with `npm run test:e2e -- --project=mock-vault`, or only the integrated UI with `npm run test:e2e -- --project=mock-ui`. The full suite has twelve tests. The readiness check intentionally failed on the historical bootstrap revision and now passes after UI integration.
 
 If Google Chrome is already installed, `PLAYWRIGHT_CHANNEL=chrome npm run test:e2e` uses it instead of downloading managed Chromium. The default needs `npx playwright install chromium`.
 
