@@ -41,6 +41,8 @@ export default function Landing() {
         <div className="sv-stack sv-stack-lg">
             <section className="sv-hero">
                 <div>
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src="/brand/logo-wordmark.svg" alt="SealedVoice" width={248} height={53} className="sv-hero-wordmark" />
                     <h1>The law requires your name. <em>Your name is what gets you punished.</em></h1>
                     <p className="sv-lede">
                         Vietnam&apos;s Law on Denunciation (2018) asks a reporter for their name and address, and anonymous

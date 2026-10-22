@@ -268,3 +268,14 @@
   .sv-roles { min-height: 0; padding-bottom: var(--s1); }
   .sv-main { padding-top: var(--s3); }
 }
+
+/* ── brand assets ── */
+.sv-brand-mark { display: block; width: 32px; height: 32px; }
+.sv-hero-wordmark { display: block; width: min(15.5rem, 70vw); height: auto; margin-bottom: var(--s4); }
+.sv-arch { margin: 0; display: none; gap: var(--s2); }
+.sv-arch img { width: 100%; height: auto; border: 1px solid var(--line); border-radius: var(--r2); background: #fff; }
+/* The 1920x1080 diagram is unreadable on a phone: show it from tablet width up, and keep the HTML flow below it as the narrow-screen version. */
+@media (min-width: 48rem) {
+  .sv-arch { display: grid; }
+  .sv-arch ~ .sv-flow { display: none; }
+}
