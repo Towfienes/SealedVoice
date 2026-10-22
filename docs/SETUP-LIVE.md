@@ -4,7 +4,7 @@ For a fresh Linux/macOS machine. Needs: Docker, Node >= 20.9, `curl`, `jq`, `sql
 Order matters: **assign every role before adding admins #2 and #3.** After that every realm change is a quorum change request.
 Ports: the app must run on **:3000** (Tide login only redirects there). TideCloak is on :8080.
 
-Status of this document: steps 1, 3, 5 and 6 mirror what the lead ran at Gate 1. Step 2 (`npm run init` on a clean machine), the admin #2/#3 REST snippet in step 7 and `scripts/invite-user.sh` were written from the scripts and are **not re-run by WT-A on a clean machine**. If one fails, copy the exact error text.
+Status of this document: written by WT-A from the repo scripts and the AGENTS.md rules. **WT-A did not run any step of it on a clean machine.** Steps that most need a first-run check: `npm run init` (step 2), the admin #2/#3 snippet (step 7) and `scripts/invite-user.sh`. If something fails, copy the exact error text and report it.
 
 ## 1. Clone and install
 ```bash
