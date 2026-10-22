@@ -120,7 +120,7 @@ export default function DeanPage() {
                 </Attack>
 
                 <Attack n={3} title="Add me as investigator" sub="Self-grant the role that can read the content" busy={busy === 3} disabled={false}
-                    onRun={() => run(3, async () => { setGrant({ kind: 'done', value: await vault.requestRole('dr.hung', 'investigator') }) })}>
+                    onRun={() => run(3, async () => { setGrant({ kind: 'done', value: await vault.requestRole(vault.mode === 'tide' ? 'admin' : 'dr.hung', 'investigator') }) })}>
                     <Result r={grant} render={(res) => res.status === 'pending'
                         ? <Pending httpStatus={res.httpStatus} message={res.message} />
                         : res.status === 'error'

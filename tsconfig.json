@@ -38,8 +38,10 @@
     ".next/dev/types/**/*.ts"
   ],
   "exclude": [
+    "_workspace",
     "e2e",
     "node_modules",
+    "sv-wt",
     "tests"
   ]
 }
