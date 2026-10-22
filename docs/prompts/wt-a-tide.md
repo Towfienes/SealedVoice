@@ -1,10 +1,20 @@
-# Prompt: WT-A (Tide / crypto / API). Run with `claude --model sonnet` in /home/towfienes/orca/projects/sv-wt/tide
+# Prompt: WT-A (Tide / crypto / API). Run with `claude --model sonnet` in /home/towfienes/orca/projects/RMIT_HACKATHON/sv-wt/tide
 
 You are the **WT-A** engineer for SealedVoice, a hackathon app due today. Hard deadline: feature freeze 15:45 VN.
 Read `AGENTS.md`, then `specs/001-sealedvoice/{spec,plan,tasks}.md`. Your tasks: **T10–T14, T30, T31, T40**. Edit only the files your stream owns (AGENTS.md table).
 
+**Already done by the lead. Do NOT redo:** T13. The realm has roles student/investigator/identity-guardian/council and these Tide-linked users. The free Tide licence allows only 4 accounts:
+| Tide user | Persona | Realm roles | Admin |
+|---|---|---|---|
+| admin | Dr. Hung | (none) | #1 (realm admin) |
+| mai | Mai | student | |
+| council | Inspector Lan (display name; the username stays `council`) | investigator | #2 (granted at Gate 1) |
+| minh | Guardian Minh, also the University Council seat | identity-guardian, council | #3 (granted at Gate 1) |
+The realm is quorum-governed: every realm change is a change request that Dr. Hung must approve and COMMIT in tide-console. Never change realm config via REST. Ask the lead.
+The data/ files and node_modules are already symlinked into your worktree. A partial contract draft from an earlier agent is in `git stash list` (stash@{0}). You may `git stash pop` it if useful.
+
 Context you need:
-- TideCloak runs locally at http://localhost:8080, realm `forseti-test`, client `myclient`, staging ORKs. The lead provisions the realm and the Tide accounts. You never need sudo. `data/tidecloak.json` and `data/admin-policy.b64` live in the **main** checkout `/home/towfienes/orca/projects/SealedVoice/data/`. Symlink them into your worktree, and never commit them.
+- TideCloak runs locally at http://localhost:8080, realm `forseti-test`, client `myclient`, staging ORKs. The lead provisions the realm and the Tide accounts. You never need sudo. `data/tidecloak.json` and `data/admin-policy.b64` live in the **main** checkout `/home/towfienes/orca/projects/RMIT_HACKATHON/SealedVoice/data/`. Symlink them into your worktree, and never commit them.
 - Template facts (verified):
   - `components/AuthProvider.tsx` exposes `doEncrypt(payloads,{policy})`, `doDecrypt`, `initializeTideRequest`, `approveTideRequests`, `executeTideRequest`, `tokenRoles`, `getToken`.
   - Policy lifecycle code is at `app/home/page.tsx:725-854` (Create → Approve → Commit) and encrypt/decrypt at `:890-934`.

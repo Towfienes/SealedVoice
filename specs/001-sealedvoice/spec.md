@@ -9,7 +9,7 @@
 - **Dr. Hung**: Head of School, realm admin #1, friend of the accused. The insider.
 - **Inspector Lan**: `investigator`, admin #2.
 - **Guardian Minh**: `identity-guardian`, independent student-affairs officer, admin #3.
-- **University Council**: `council`, the escalation body.
+- **University Council**: `council`, the escalation body. Its seat is held by Guardian Minh's account, because the free Tide licence allows only 4 accounts. Inspector Lan logs in with the Tide user `council`.
 
 ## User stories and acceptance criteria
 **US1 · Mai files a sealed report (P1)**

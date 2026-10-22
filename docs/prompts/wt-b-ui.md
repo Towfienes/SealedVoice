@@ -1,4 +1,4 @@
-# Prompt: WT-B (UI). Run with `claude --model sonnet` in /home/towfienes/orca/projects/sv-wt/ui
+# Prompt: WT-B (UI). Run with `claude --model sonnet` in /home/towfienes/orca/projects/RMIT_HACKATHON/sv-wt/ui
 
 You are the **WT-B** engineer for SealedVoice, a hackathon app due today. Feature freeze 15:45 VN.
 Read `AGENTS.md`, then `specs/001-sealedvoice/{spec,plan,tasks}.md`. Your tasks: **T15–T19, T41**. Edit only WT-B files. The UI talks to `useVault()` from `@/lib/vault` **only**. Run with the mock vault (`NEXT_PUBLIC_VAULT=mock`, the default). The lead swaps in the real Tide vault later. Do not change `lib/vault/types.ts`. You may extend `lib/vault/mock.ts`.
