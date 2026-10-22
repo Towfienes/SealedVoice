@@ -32,7 +32,7 @@ The demo follows Mai, Lan, Minh and insider Dr. Hung through submission, investi
 
 ## Demo video
 
-**[▶ Watch the 2-minute demo (Video.mp4)](Video.mp4)** · 1:52 · English narration · mock walkthrough labelled SIMULATED, plus live Tide evidence.
+**[▶ Watch the 2-minute demo (Video.mp4)](Video.mp4)** · 1:48 · English narration · mock-mode walkthrough plus live Tide evidence.
 
 | Resource | Link |
 |---|---|
