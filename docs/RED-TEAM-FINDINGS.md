@@ -4,11 +4,13 @@
 
 The original table below is historical, against `553eae6`. A follow-up review at `7f5ebaa` (Codex rebased onto integrated `main` `358b364`) found several source fixes. Unit tests now pass **41/41**. Live Tide remains unavailable. Initial HTTP rechecks timed out while Next dev was starting; these source assessments are not live ORK/QEA verdicts.
 
+Subsequent read-only production-server probes from an isolated fresh clone at `0998890` confirmed: unauthenticated GET `/api/reports`, pending `/api/policies` and `/api/admin/db-dump` return **401 `{"error":"unauthorized"}`**; public committed-policy GET returns **200 `[]`**; OPTIONS policy route returns **204**, `Allow: GET, HEAD, OPTIONS, POST`. No mutation or DELETE request was sent. This supersedes the earlier HTTP-recheck timeout, but does not establish authorized positive responses or live Tide behavior.
+
 | Finding | Current assessment | Evidence and remaining action |
 |---|---|---|
 | Missing report flow / mock selected as Tide | Resolved in source; live unverified | Real routes and `useTideVault()` now exist. Three separate encrypt calls; POST uses `credentials: "omit"` without Authorization. Capture real browser/Tide behavior. |
 | Missing roles / omitted or malformed required council lock | Resolved in source; live unverified | Generated imported contract matches hardened `.cs`; synchronization test passes. Recommit policies to the new contract ID and test actual ORK denials. |
-| Unauthenticated policy writes / DELETE | Resolved in source; HTTP verification pending | Admin gate now uses the verifier; DELETE export removed. Committed-policy GET is intentionally public. |
+| Unauthenticated policy writes / DELETE | Resolved in source; unauthenticated read gates and advertised methods confirmed over HTTP | Admin gate now uses the verifier; DELETE export removed. Mutations/authorized positive paths were not exercised. Committed-policy GET is intentionally public. |
 | Policy overwrite | Resolved in storage tests | Explicit labels; three labels coexist and recommitting replaces only one. Verify real committed policies' roles, tags and contract IDs. |
 | First-batch-item-only checks | Outstanding P1; live exploit untested | Contract still reads only the first item. Separate calls protect the normal UI path, not a custom client. Reject batches or validate every item; verify tag binding live. |
 | DPoP `ath` / `jti` / proof replay | Outstanding P2, previously reproduced | Verifier unchanged; now reached through server auth. Add hash binding, required proof IDs, replay cache and correct authorization-scheme handling. |

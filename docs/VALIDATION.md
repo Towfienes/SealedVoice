@@ -5,10 +5,10 @@ Initial baseline: `553eae6`. Current integration baseline: `358b364` (`main`, 22
 | Task | Work delivered | Verification / remaining work |
 |---|---|---|
 | T20 | README badge and original sentence preserved; five judging sections, Setup, Limits and Credits written. | `bash scripts/wordcount.sh`: **239** words; below 300. Setup distinguishes mock behavior from unverified live integration. |
-| T21 | Two-minute English narration and per-persona shot list; trust and attack documents adapted to reporter/investigator/guardian/council. | Four timed sections total 120 seconds. Recording is pending; no `Video.mp4` has been produced. |
+| T21 | Two-minute English narration and per-persona shot list; trust and attack documents adapted to reporter/investigator/guardian/council. | Four timed sections total 120 seconds; 266 narration words. Recording is pending; no `Video.mp4` has been produced. |
 | T22 | Student/investigator/report fixtures; test-runner fix; Playwright vault and actual UI workflows for US1–US5. | **41 unit tests and 12 browser tests pass, 0 fail** after integration. App and test TypeScript checks pass; production build passes. |
 | T42 | Fresh-context, report-only localhost review plus post-integration source reassessment. | [Findings](RED-TEAM-FINDINGS.md) preserve history and distinguish source fixes from outstanding batch/tag and DPoP gaps. Real ORK/QEA behavior remains untested. |
-| T51 | Initial Setup issues found; isolated clean-clone check in progress. | Final live clone/login/enrollment validation remains pending a working Tide environment. |
+| T51 | Isolated remote clone of `docs/codex` at `0998890`; followed the README's install/test/build/mock-browser path. | Install, **41/41 unit tests**, build, **12 browser tests (49.4s)** and 239-word check all pass. Checkout stays clean. Genuine Tide enrollment/login validation remains pending. |
 
 ## Current validation
 
@@ -18,6 +18,23 @@ Initial baseline: `553eae6`. Current integration baseline: `358b364` (`main`, 22
 - `npx tsc --noEmit`: **exit 0**.
 - Explicit strict TypeScript check of `e2e/*.ts`, config and verifier tests: **exit 0**. The package has no lint script; `git diff --check` also passes.
 - `bash scripts/wordcount.sh`: **239**, below 300.
+- GitHub's build check for code snapshot `0998890`: **success** ([run](https://github.com/Towfienes/SealedVoice/actions/runs/39741325096)). The existing workflow runs build/unit checks; browser results above are local.
+
+## Fresh-clone result
+
+Cloned the remote PR branch with `git clone --branch docs/codex` into an independent temporary directory, without copying node_modules, data, `.env` files or config. Branch selection is the only difference from the README clone command while this PR is unmerged. Then ran its documented `npm install`, `npm test`, `npm run build` and Chrome alternative for `npm run test:e2e`. All exited zero; no retries. Installation took about five minutes on this connection. No further source changes were needed in the fresh checkout.
+
+Read-only probes against that clone's production server also observed:
+
+| Request, no Authorization | Result |
+|---|---|
+| GET `/api/reports` | **401**, `{"error":"unauthorized"}` |
+| GET `/api/policies` | **401**, `{"error":"unauthorized"}` |
+| GET `/api/policies?type=committed` | **200**, `[]` (intentionally public) |
+| OPTIONS `/api/policies` | **204**, `Allow: GET, HEAD, OPTIONS, POST` |
+| GET `/api/admin/db-dump` | **401**, `{"error":"unauthorized"}` |
+
+These establish unauthenticated read gates and the declared methods, not successful token verification, admin mutations or real decryption. No mutating API probes were sent. The production server was stopped after inspection.
 
 One dev-server attempt after rebasing timed out at startup. Preserving the old `.next/dev` cache outside the checkout and rebuilding a fresh cache restored startup; the subsequent full suite passed. No app/config source was changed to suppress the issue.
 
