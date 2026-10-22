@@ -5,7 +5,7 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { policyBytes } from "@/lib/vault/tide";
-import { raceForcedRelogin } from "@/lib/tideSession";
+import { raceForcedRelogin } from "@/lib/forcedRelogin";
 
 interface Row { id: string; alias: string; createdAt: number; envelopes: { council: { ciphertext: string; tags: string[]; unlockAt?: number } } }
 interface Outcome { label: string; tags: string[]; result: string }

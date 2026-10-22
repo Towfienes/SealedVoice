@@ -8,20 +8,13 @@
 // We intercept exactly that call (the app's own sign-in uses a different login() shape), reject the in-flight
 // operation with a readable error, and show a banner instead of navigating.
 import { IAMService } from "@tidecloak/js";
+import { rejectAllPending } from "./forcedRelogin";
 
-const pending = new Set<(e: Error) => void>();
+export { raceForcedRelogin } from "./forcedRelogin";
 const USER_KEY = "sv-session-user";
 
 export function currentUsername(): string {
   try { return String(IAMService.getValueFromToken("preferred_username") ?? ""); } catch { return ""; }
-}
-
-/** Rejects if the SDK demands a forced re-login while `p` is in flight. */
-export function raceForcedRelogin<T>(p: Promise<T>): Promise<T> {
-  return new Promise<T>((resolve, reject) => {
-    pending.add(reject);
-    p.then(resolve, reject).finally(() => pending.delete(reject));
-  });
 }
 
 /** Idempotent. Call after IAMService.initIAM has created the client. */
@@ -34,12 +27,11 @@ export function installReloginGuard(onForced: (message: string) => void): void {
     if (opts?.prompt === "login" && opts?.idpHint === "tide") {
       const message =
         `Tide requires re-authentication: the Tide enclave in this browser does not match the signed-in token ` +
-        `(session key mismatch) for '${currentUsername() || "unknown user"}'. ` +
+        `(typically a session key mismatch) for '${currentUsername() || "unknown user"}'. ` +
         `Sign out and sign in again as this persona in THIS browser profile, then retry.`;
       console.warn("[SealedVoice] blocked Tide forced re-login:", message);
       const err = new Error(message);
-      pending.forEach((reject) => reject(err));
-      pending.clear();
+      rejectAllPending(err);
       onForced(message);
       return Promise.resolve();
     }

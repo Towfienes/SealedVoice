@@ -5,7 +5,7 @@ import { useMemo, useRef } from "react";
 import { IAMService } from "@tidecloak/js";
 import { useAuth } from "@/hooks/useAuth";
 import { base64ToBytes } from "@/lib/tideSerialization";
-import { raceForcedRelogin } from "@/lib/tideSession";
+import { raceForcedRelogin, inStep } from "@/lib/forcedRelogin";
 import { ENVELOPE_LABEL, envelopeTags, type PolicyLabel } from "@/lib/policies/labels";
 import type {
   EnvelopeKind, OpenResult, Receipt, ReportDraft, ReportRecord, ReporterIdentity, Role,
@@ -127,9 +127,9 @@ function buildTideVault(ref: { current: AuthCtx }): TideVault {
     draft: ReportDraft, identity: ReporterIdentity, opts?: { councilDelaySec?: number }, onProgress?: SealProgress,
   ): Promise<Receipt> {
     const unlockAt = now() + (opts?.councilDelaySec ?? 180);
-    const step = async <T,>(name: string, label: string, fn: () => Promise<T>): Promise<T> => {
+    const step = <T,>(name: string, label: string, fn: () => Promise<T>): Promise<T> => {
       onProgress?.(label);
-      try { return await fn(); } catch (e) { throw new Error(`${name}: ${msgOf(e)}`); }
+      return inStep(name, fn);
     };
     const content = await step("encrypt content", "Encrypting content envelope…", () => encryptEnvelope("content", JSON.stringify(draft)));
     const ident = await step("encrypt identity", "Encrypting identity envelope…", () => encryptEnvelope("identity", JSON.stringify(identity)));
