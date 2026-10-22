@@ -35,31 +35,57 @@ export default function AdminPolicies() {
     await refresh();
   };
 
-  if (auth.isLoading) return <main style={{ padding: 24 }}>Loading…</main>;
-  if (!auth.isAuthenticated) return <main style={{ padding: 24 }}>Sign in as the realm admin (Dr. Hung) to manage policies.</main>;
-  if (!isAdmin) return <main style={{ padding: 24 }}>Forbidden: this page is for the realm admin. (The ORKs enforce the signing; this check is only UX.)</main>;
+  if (auth.isLoading) return <div className="sv-callout">Loading…</div>;
+  if (!auth.isAuthenticated) return <div className="sv-callout">Sign in as the realm admin (Dr. Hung) to manage policies.</div>;
+  if (!isAdmin) return <div className="sv-callout warn">Forbidden: this page is for the realm admin. (The ORKs enforce the signing; this check is only UX.)</div>;
+
+  const lastError = log.find((l) => l.includes("FAILED"));
 
   return (
-    <main style={{ padding: 24, maxWidth: 820, margin: "0 auto", display: "grid", gap: 16 }}>
-      <h1>Policies</h1>
-      <p>Three Forseti policies on one frozen contract. Create, then Approve, then Commit. Each opens the Tide enclave.</p>
+    <div className="sv-stack">
+      <div className="sv-page-head">
+        <h1 className="sv-h1">Policies</h1>
+        <p className="sv-lede">Three Forseti policies on one frozen contract. Create, then Approve, then Commit. Each step opens the Tide enclave.</p>
+      </div>
+      <div className="sv-grid-3">
       {POLICY_LABELS.map((label) => {
         const spec = POLICY_SPECS[label];
         const row = pending.find((p) => labelOfPending(p) === label);
         const done = committed.includes(label);
+        const status = done ? "committed" : row ? "pending" : "none";
         return (
-          <section key={label} style={{ border: "1px solid #8884", borderRadius: 8, padding: 16, display: "grid", gap: 8 }}>
-            <strong>{label}{done ? "  ✓ committed" : row ? "  (pending)" : ""}</strong>
-            <small>decrypt = {spec.decryptRole} · tag = {spec.resourceTag} · time lock = {spec.requireTimeLock ? "required" : "off"}</small>
-            <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-              <button disabled={!!busy || !!row} onClick={() => run(`create ${label}`, async () => `contract ${(await createPolicy(label, auth)).slice(0, 12)}…`)}>1 · Create</button>
-              <button disabled={!!busy || !row} onClick={() => run(`approve ${label}`, () => approvePolicy(row!, auth))}>2 · Approve</button>
-              <button disabled={!!busy || !row} onClick={() => run(`commit ${label}`, () => commitPolicy(row!, auth))}>3 · Commit</button>
+          <section key={label} className="sv-card sv-policy" aria-label={`Policy ${label}`}>
+            <div className="sv-policy-head">
+              <h2>{label}</h2>
+              <span className={`sv-pill sv-pill-${status}`}>{done ? "Committed" : row ? "Pending approval" : "Not created"}</span>
             </div>
+            <dl className="sv-kv">
+              <dt>decrypt</dt><dd>{spec.decryptRole}</dd>
+              <dt>tag</dt><dd className="sv-mono">{spec.resourceTag}</dd>
+              <dt>time lock</dt><dd>{spec.requireTimeLock ? "required" : "off"}</dd>
+            </dl>
+            <ol className="sv-stepper">
+              <li className={row || done ? "is-done" : "is-next"}>
+              <button className="sv-btn" disabled={!!busy || !!row} onClick={() => run(`create ${label}`, async () => `contract ${(await createPolicy(label, auth)).slice(0, 12)}…`)}>1 · Create</button>
+              </li>
+              <li className={done ? "is-done" : row ? "is-next" : ""}>
+              <button className="sv-btn" disabled={!!busy || !row} onClick={() => run(`approve ${label}`, () => approvePolicy(row!, auth))}>2 · Approve</button>
+              </li>
+              <li className={done ? "is-done" : ""}>
+              <button className="sv-btn" disabled={!!busy || !row} onClick={() => run(`commit ${label}`, () => commitPolicy(row!, auth))}>3 · Commit</button>
+              </li>
+            </ol>
           </section>
         );
       })}
-      <pre aria-live="polite" style={{ whiteSpace: "pre-wrap", fontSize: 12 }}>{log.join("\n")}</pre>
-    </main>
+      </div>
+      {lastError && (
+        <div className="sv-verdict blocked" role="alert">
+          <div className="sv-verdict-band"><span>Last error</span></div>
+          <div className="sv-verdict-body"><pre className="sv-verbatim">{lastError}</pre></div>
+        </div>
+      )}
+      <pre className="sv-log" aria-live="polite">{log.join("\n")}</pre>
+    </div>
   );
 }

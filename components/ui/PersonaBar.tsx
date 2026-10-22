@@ -14,12 +14,16 @@ const NAV = [
   { href: "/how-it-works", label: "How it works" },
 ];
 
+const APP_ROLES = ["student", "investigator", "identity-guardian", "council"];
+
 export function PersonaBar() {
   const { vault, session, ready } = useSession();
   const path = usePathname();
   const personaId = ready
     ? Object.entries(MOCK_PERSONAS).find(([, p]) => p.displayName === session?.displayName)?.[0] ?? ""
     : "";
+
+  const appRoles = APP_ROLES.filter((r) => session?.roles.includes(r));
 
   return (
     <header className="sv-top">
@@ -64,10 +68,16 @@ export function PersonaBar() {
         ))}
       </nav>
       {ready && session?.signedIn && (
-        <p className="sv-roles">
-          Roles in token: {session.roles.length ? session.roles.map((r) => <code key={r}>{r}</code>) : <em>none</em>}
-          {session.isRealmAdmin && <span className="sv-badge sv-badge-admin">realm admin</span>}
-        </p>
+        <div className="sv-roles">
+          <span className="sv-roles-label">Roles</span>
+          {appRoles.map((r) => <span key={r} className="sv-badge sv-badge-role">{r}</span>)}
+          {session.isRealmAdmin && <span className="sv-badge sv-badge-admin">Realm admin</span>}
+          {appRoles.length === 0 && !session.isRealmAdmin && <em>no app roles</em>}
+          <details className="sv-debug">
+            <summary>Token roles (debug)</summary>
+            <p>{session.roles.length ? session.roles.map((r) => <code key={r}>{r}</code>) : <em>none</em>}</p>
+          </details>
+        </div>
       )}
     </header>
   );

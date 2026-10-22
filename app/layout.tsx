@@ -2,8 +2,13 @@ import type { Metadata } from 'next'
 import type { ReactNode } from 'react'
 import { AuthProvider } from '@/components/AuthProvider'
 import { PersonaBar } from '@/components/ui/PersonaBar'
+import { Fraunces, Public_Sans, IBM_Plex_Mono } from 'next/font/google'
 import './globals.css'
 import './sealedvoice.css'
+
+const display = Fraunces({ subsets: ['latin'], variable: '--font-display', axes: ['opsz'], display: 'swap' })
+const sans = Public_Sans({ subsets: ['latin'], variable: '--font-sans', display: 'swap' })
+const mono = IBM_Plex_Mono({ subsets: ['latin'], weight: ['400', '600'], variable: '--font-mono', display: 'swap' })
 
 export const metadata: Metadata = {
     title: 'SealedVoice: verified but sealed',
@@ -26,7 +31,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
         </div>
     )
     return (
-        <html lang="en">
+        <html lang="en" className={`${display.variable} ${sans.variable} ${mono.variable}`}>
             <body>
                 <AuthProvider>{shell}</AuthProvider>
             </body>

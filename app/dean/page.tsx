@@ -5,7 +5,7 @@ import { useEffect, useState } from 'react'
 import { MOCK_PERSONAS, type OpenResult, type ReportRecord, type RoleRequestResult } from '@/lib/vault'
 import { useReports, useSession, switchPersona } from '@/components/ui/useSession'
 import { Countdown } from '@/components/ui/Countdown'
-import { Denial, Pending, SignInPrompt, SimulatedBadge } from '@/components/ui/Callouts'
+import { Denial, Pending, SealIcon, SignInPrompt, SimulatedBadge } from '@/components/ui/Callouts'
 import { fmtTime, shorten } from '@/components/ui/format'
 
 type Out<T> = { kind: 'idle' } | { kind: 'done'; value: T }
@@ -15,10 +15,15 @@ function Attack({ n, title, sub, onRun, busy, disabled, children }: {
 }) {
     return (
         <section className="sv-card sv-attack" aria-label={`Attack ${n}: ${title}`}>
+            <div className="sv-attack-head">
+                <span className="sv-attack-n" aria-hidden="true">{n}</span>
+                <div>
+                    <h2>{title}</h2>
+                    <p>{sub}</p>
+                </div>
+            </div>
             <button className="sv-attack-btn" onClick={onRun} disabled={busy || disabled}>
-                <span className="n">Attack {n}</span>
-                <span className="t">{busy ? 'Trying…' : title}</span>
-                <span className="s">{sub}</span>
+                {busy ? 'Trying…' : `Run attack ${n}`}
             </button>
             <div aria-live="polite" className="sv-stack">{children}</div>
         </section>
@@ -107,7 +112,7 @@ export default function DeanPage() {
                                     ))}</tbody>
                                 </table>
                             </div>
-                            <p className="sv-hint">Every column is ciphertext. There is no plaintext column to find, and no reporter column at all.</p>
+                            <p className="sv-sealed-note"><SealIcon size={20} /> <span><strong>Every column is ciphertext.</strong> There is no plaintext column to find, and no reporter column at all.</span></p>
                         </>
                     )} />
                 </Attack>
@@ -133,7 +138,7 @@ export default function DeanPage() {
                     {target?.envelopes.council.unlockAt && (
                         <div className="sv-panel">
                             <Countdown unlockAt={target.envelopes.council.unlockAt} big />
-                            <p style={{ marginTop: '.6rem' }}><strong>This cannot be stopped.</strong> There is no cancel and no extend. The Council copy opens at this time.</p>
+                            <p className="sv-cannot"><strong>This cannot be stopped.</strong> There is no cancel and no extend. The Council copy opens at this time.</p>
                         </div>
                     )}
                     <Result r={bury} render={(res) => res.ok
