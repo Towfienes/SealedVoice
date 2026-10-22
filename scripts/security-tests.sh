@@ -158,7 +158,7 @@ expect_status "plaintext report body is rejected" "400" "$code" "$body"
 read -r code body <<<"$(req POST /api/reports "" '{"envelopes":{"content":{"ciphertext":"not base64 at all!","tags":["sv:content"]}}}')"
 expect_status "non-base64 ciphertext is rejected" "400" "$code" "$body"
 CT='QUJDREVGR0hJSktMTU5PUFFSU1RVVldYWVo='
-OKBODY='{"envelopes":{"content":{"ciphertext":"'$CT'","tags":["sv:content"]},"identity":{"ciphertext":"'$CT'","tags":["sv:identity"]},"council":{"ciphertext":"'$CT'","tags":["sv:council","DecryptTimeLock:4102444800"],"unlockAt":4102444800}}}'
+OKBODY='{"envelopes":{"content":{"ciphertext":"'$CT'","tags":["sv:content"]},"identity":{"ciphertext":"'$CT'","tags":["sv:identity"]},"council":{"ciphertext":"'$CT'","tags":["sv:council","DecryptTimeLock:2000000000"],"unlockAt":2000000000}}}'
 read -r code body <<<"$(req POST /api/reports "" "$OKBODY")"
 expect_status "well-formed ciphertext envelopes accepted with NO Authorization header" "201" "$code" "$body"
 

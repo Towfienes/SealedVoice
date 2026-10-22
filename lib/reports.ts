@@ -21,6 +21,8 @@ const B64 = /^[A-Za-z0-9+/_-]+={0,2}$/;
 const MAX_CIPHERTEXT = 64 * 1024;
 const MAX_TAGS = 8;
 const MAX_TAG_LEN = 128;
+const MAX_UNLOCK = 2147483647; // the contract parses DecryptTimeLock as a 32-bit int: larger values would never open
+const RESOURCE_TAG: Record<EnvelopeKind, string> = { content: "sv:content", identity: "sv:identity", council: "sv:council" };
 
 function isObj(v: unknown): v is Record<string, unknown> {
   return typeof v === "object" && v !== null && !Array.isArray(v);
@@ -50,10 +52,13 @@ export function validateReportBody(body: unknown): Validation {
     if (!Array.isArray(tags) || tags.length === 0 || tags.length > MAX_TAGS || !tags.every((t) => typeof t === "string" && t.length > 0 && t.length <= MAX_TAG_LEN)) {
       return { ok: false, error: `envelope ${kind}: tags must be 1 to ${MAX_TAGS} short strings` };
     }
+    if (!(tags as string[]).includes(RESOURCE_TAG[kind])) {
+      return { ok: false, error: `envelope ${kind}: tags must include ${RESOURCE_TAG[kind]}` };
+    }
     const env_: StoredEnvelope = { kind, ciphertext, tags: tags as string[] };
     if (kind === "council") {
       const u = e.unlockAt;
-      if (typeof u !== "number" || !Number.isInteger(u) || u <= 0) return { ok: false, error: "council envelope: unlockAt must be an epoch-seconds integer" };
+      if (typeof u !== "number" || !Number.isInteger(u) || u <= 0 || u > MAX_UNLOCK) return { ok: false, error: "council envelope: unlockAt must be an epoch-seconds integer below 2^31" };
       if (!env_.tags.includes(`DecryptTimeLock:${u}`)) return { ok: false, error: "council envelope: tags must include DecryptTimeLock:<unlockAt>" };
       env_.unlockAt = u;
     }

@@ -49,6 +49,16 @@ test("missing envelope, non-object body and bad council lock are rejected", () =
   assert.equal(validateReportBody(d).ok, false);
 });
 
+test("tags must carry the envelope's resource tag; unlockAt must fit the contract's int", () => {
+  const a = good() as any;
+  a.envelopes.identity.tags = ["sv:content"];
+  assert.equal(validateReportBody(a).ok, false);
+  const b = good() as any;
+  b.envelopes.council.unlockAt = 4102444800;
+  b.envelopes.council.tags = ["sv:council", "DecryptTimeLock:4102444800"];
+  assert.equal(validateReportBody(b).ok, false);
+});
+
 test("stored rows contain ciphertext only and no reporter data", () => {
   const db = new Database(":memory:");
   initReportsSchema(db);

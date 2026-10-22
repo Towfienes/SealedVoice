@@ -54,9 +54,11 @@ export async function POST(req: NextRequest) {
 
         if (committed) {
             const { base64ToBytes } = await import("@/lib/tideSerialization");
-            await CommitPolicyRequest(committed.id, base64ToBytes(committed.signature));
+            const ok = await CommitPolicyRequest(committed.id, base64ToBytes(committed.signature));
+            if (!ok) return NextResponse.json({ error: "Commit refused: unknown request or policy without a known ResourceTag" }, { status: 422 });
         } else if (decision) {
-            await AddPolicyRequestDecision(policyRequest, userVuid, decision.rejected);
+            const ok = await AddPolicyRequestDecision(policyRequest, userVuid, decision.rejected);
+            if (!ok) return NextResponse.json({ error: "Decision could not be recorded" }, { status: 422 });
         } else {
             await CreatePolicyRequest(policyRequest, requestedBy || "unknown");
         }

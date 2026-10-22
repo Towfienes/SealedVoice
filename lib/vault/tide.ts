@@ -71,8 +71,13 @@ export function useTideVault(): Vault {
   async function openEnvelope<T>(r: ReportRecord, kind: EnvelopeKind): Promise<OpenResult<T>> {
     if (!auth.isAuthenticated) return { ok: false, reason: "not-signed-in", message: "Sign in first" };
     const env = r.envelopes[kind];
+    let policy: Uint8Array;
     try {
-      const policy = await policyBytes(ENVELOPE_LABEL[kind]);
+      policy = await policyBytes(ENVELOPE_LABEL[kind]);
+    } catch (e: any) {
+      return { ok: false, reason: "error", message: String(e?.message ?? e) }; // setup problem, not a Tide denial
+    }
+    try {
       const [out] = await auth.doDecrypt([{ encrypted: env.ciphertext, tags: env.tags }], policy);
       const text = typeof out === "string" ? out : new TextDecoder().decode(out);
       return { ok: true, value: JSON.parse(text) as T };
