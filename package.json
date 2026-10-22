@@ -10,7 +10,8 @@
     "build": "next build --webpack",
     "start": "next start",
     "init": "sh init/start.sh",
-    "test": "node --experimental-strip-types --test tests/"
+    "test": "node --experimental-strip-types --test \"tests/*.test.ts\"",
+    "test:e2e": "playwright test"
   },
   "dependencies": {
     "@tidecloak/js": "0.13.21",
@@ -24,6 +25,7 @@
     "react-dom": "19.x"
   },
   "devDependencies": {
+    "@playwright/test": "^1.64.1",
     "@types/better-sqlite3": "^7.6.12",
     "@types/node": "^20",
     "@types/react": "^19",
