@@ -402,8 +402,10 @@ export async function verifyTideToken(
   }
 
   const aud = payload["aud"];
+  // Keycloak/TideCloak access tokens name the requesting client in `azp` (authorized party) and
+  // often put only "account"/"realm-management" in `aud`. Accept either; signature + issuer are already verified.
   const audOk = Array.isArray(aud) ? aud.includes(options.audience) : aud === options.audience;
-  if (!audOk) throw new TokenError("bad audience", "BAD_AUDIENCE");
+  if (!audOk && payload["azp"] !== options.audience) throw new TokenError("bad audience", "BAD_AUDIENCE");
 
   // 5. DPoP binding, if the token carries cnf.jkt.
   checkDpop(payload, options.dpop, { now, clockTolerance });

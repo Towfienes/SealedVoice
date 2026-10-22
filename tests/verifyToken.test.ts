@@ -247,11 +247,17 @@ describe("attack: claim abuse", () => {
   });
 
   test("token issued for a different client (audience) is rejected", async () => {
-    const token = makeToken(basePayload({ aud: "admin-cli" }));
+    const token = makeToken(basePayload({ aud: "admin-cli", azp: "admin-cli" }));
     await expectCode(
       () => verifyTideToken(token, jwksUrl, { issuer: ISSUER, audience: AUDIENCE }),
       "BAD_AUDIENCE",
     );
+  });
+
+  test("Keycloak-style token (aud=account, azp=our client) is accepted", async () => {
+    const token = makeToken(basePayload({ aud: "account", azp: AUDIENCE }));
+    const res = await verifyTideToken(token, jwksUrl, { issuer: ISSUER, audience: AUDIENCE });
+    assert.equal(res.payload["azp"], AUDIENCE);
   });
 
   test("nbf in the future is rejected", async () => {
