@@ -15,8 +15,8 @@ Read first, in this order: `specs/001-sealedvoice/spec.md` → `plan.md` → `ta
 | Stream | Who | Branch / worktree | Owns |
 |---|---|---|---|
 | Lead | Opus + Towfienes | `main` (repo root) | `lib/vault/types.ts`, `lib/vault/index.ts`, `AGENTS.md`, `specs/`, merges, TideCloak setup |
-| WT-A Tide/API | Claude Sonnet | `feat/tide-core` @ `../sv-wt/tide` | `contracts/`, `lib/forsetiContract.ts`, `lib/policies/**`, `lib/vault/tide.ts`, `lib/database/**`, `app/api/**`, `init/**`, `scripts/{invite-user,security-tests,reset-demo}.sh`, `components/AuthProvider.tsx` |
-| WT-B UI | Claude Sonnet | `feat/ui` @ `../sv-wt/ui` | `app/**/page.tsx`, `app/layout.tsx`, `app/globals.css`, `components/ui/**`, `lib/vault/mock.ts`, `public/**` |
+| WT-A Tide/API | Claude Sonnet | `feat/tide-core` @ `sv-wt/tide` | `contracts/`, `lib/forsetiContract.ts`, `lib/policies/**`, `lib/vault/tide.ts`, `lib/database/**`, `app/api/**`, `init/**`, `scripts/{invite-user,security-tests,reset-demo}.sh`, `components/AuthProvider.tsx` |
+| WT-B UI | Claude Sonnet | `feat/ui` @ `sv-wt/ui` | `app/**/page.tsx`, `app/layout.tsx`, `app/globals.css`, `components/ui/**`, `lib/vault/mock.ts`, `public/**` |
 | Codex | khanhle1406 | `docs/codex` (own machine) | `README.md`, `docs/**` (except MASTERPLAN), `tests/**`, `e2e/**`, `playwright.config.ts`, seed text |
 
 `lib/vault/types.ts` is the contract between UI and Tide. Changes go through the lead.

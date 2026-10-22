@@ -36,7 +36,7 @@ The POST validator rejects bodies that contain plaintext field names (`descripti
 ## Reuse
 - Template: `components/AuthProvider.tsx` (doEncrypt/doDecrypt/approve/execute), `hooks/useAuth.ts`, `lib/tidecloakConfig.ts`, `lib/adminPolicy.ts`, `lib/tideSerialization.ts`, `init/*`.
 - The policy create/approve/commit handlers are in `app/home/page.tsx:725-934`. Move them to `lib/policies/flow.ts` and delete the demo UI.
-- From the SealedBid work at `/home/towfienes/orca/projects/RMIT_HACKATHON/c2/`: `lib/verifyToken.ts` (copied), `tests/verifyToken.test.ts` (copied), `scripts/security-tests.sh` (copied, adapt), `app/api/committee/open/route.ts` (pattern), `docs/TRUST-MODEL.md`, `docs/ATTACK-VECTORS.md` (adapt).
+- From the SealedBid work at `/home/towfienes/orca/projects/RMIT_HACKATHON/_workspace/c2/`: `lib/verifyToken.ts` (copied), `tests/verifyToken.test.ts` (copied), `scripts/security-tests.sh` (copied, adapt), `app/api/committee/open/route.ts` (pattern), `docs/TRUST-MODEL.md`, `docs/ATTACK-VECTORS.md` (adapt).
 - QEA 202: `POST /admin/realms/{realm}/users/{id}/role-mappings/realm`. See `init/tcinit.sh` (~line 575).
 
 ## Risks and fallbacks

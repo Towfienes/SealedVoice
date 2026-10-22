@@ -80,8 +80,8 @@ UI chỉ gọi interface, nhờ vậy WT-B và Codex làm được mà **không 
 | Luồng | Ai, ở đâu | Branch | Sở hữu file | Skill / MCP |
 |---|---|---|---|---|
 | **Lead** | Mình (Opus) + bạn | `main` | bootstrap, `lib/vault/types.ts`, specs, AGENTS.md, merge, cài Tide, tích hợp | decision-making, git-workflow, github-ops, jev-review-triage, verification-before-completion |
-| **WT-A Tide/API** | Sonnet, `../sv-wt/tide` | `feat/tide-core` | contract, `lib/policies/*`, `lib/vault/tide.ts`, `api/reports`, `api/admin/grant-role`, DB `reports`, `init/realm.json`, `scripts/invite-user.sh`, `scripts/security-tests.sh` | tide-pack MCP, security-review, tdd-workflow, backend-patterns |
-| **WT-B UI** | Sonnet, `../sv-wt/ui` | `feat/ui` | `app/**/page.tsx` (trừ api), `components/ui/*`, `lib/vault/mock.ts`, `/how-it-works`, `globals.css` | ui-ux-pro-max → frontend-design → impeccable, react-patterns, accessibility |
+| **WT-A Tide/API** | Sonnet, `sv-wt/tide` | `feat/tide-core` | contract, `lib/policies/*`, `lib/vault/tide.ts`, `api/reports`, `api/admin/grant-role`, DB `reports`, `init/realm.json`, `scripts/invite-user.sh`, `scripts/security-tests.sh` | tide-pack MCP, security-review, tdd-workflow, backend-patterns |
+| **WT-B UI** | Sonnet, `sv-wt/ui` | `feat/ui` | `app/**/page.tsx` (trừ api), `components/ui/*`, `lib/vault/mock.ts`, `/how-it-works`, `globals.css` | ui-ux-pro-max → frontend-design → impeccable, react-patterns, accessibility |
 | **Codex** | khanhle1406, máy riêng | `docs/codex` | README overview + Setup, `docs/*`, `DEMO_SCRIPT.md`, `tests/*` (đổi fixture), `e2e/*` (mock mode), seed data, chạy red team | (Codex) dùng prompt trong `docs/RED-TEAM-PROMPT.md` |
 
 **Quy tắc:**
@@ -146,5 +146,5 @@ Viết trong 15 phút ở Phase 0. Không dùng CLI `specify`.
 ## Bước đầu tiên khi được duyệt (Phase 0, mình làm)
 1. `gh repo create Towfienes/SealedVoice --public`, copy template-ts-app (bỏ `keycloakdb.*`, `node_modules`) và các file tái sử dụng ở mục 3. Viết AGENTS.md, specs, docs/MASTERPLAN.md, `lib/vault/types.ts` + `mock.ts` tối thiểu. Push `main`.
 2. `gh api -X PUT repos/Towfienes/SealedVoice/collaborators/khanhle1406 -f permission=maintain`.
-3. `git worktree add ../sv-wt/tide -b feat/tide-core` và `../sv-wt/ui -b feat/ui`. Viết sẵn prompt cho mỗi phiên Sonnet (`claude --model sonnet` trong từng thư mục) và tin nhắn giao việc cho Codex.
+3. `git worktree add ../sv-wt/tide -b feat/tide-core` và `sv-wt/ui -b feat/ui`. Viết sẵn prompt cho mỗi phiên Sonnet (`claude --model sonnet` trong từng thư mục) và tin nhắn giao việc cho Codex.
 4. Dừng container `mytidecloak` cũ, chạy lại init trong repo mới. Bạn bấm link đăng ký và tạo tài khoản.
