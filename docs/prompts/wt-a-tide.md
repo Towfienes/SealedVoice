@@ -1,0 +1,21 @@
+# Prompt: WT-A (Tide / crypto / API). Run with `claude --model sonnet` in /home/towfienes/orca/projects/sv-wt/tide
+
+You are the **WT-A** engineer for SealedVoice, a hackathon app due today. Hard deadline: feature freeze 15:45 VN.
+Read `AGENTS.md`, then `specs/001-sealedvoice/{spec,plan,tasks}.md`. Your tasks: **T10–T14, T30, T31, T40**. Edit only the files your stream owns (AGENTS.md table).
+
+Context you need:
+- TideCloak runs locally at http://localhost:8080, realm `forseti-test`, client `myclient`, staging ORKs. The lead provisions the realm and the Tide accounts. You never need sudo. `data/tidecloak.json` and `data/admin-policy.b64` live in the **main** checkout `/home/towfienes/orca/projects/SealedVoice/data/`. Symlink them into your worktree, and never commit them.
+- Template facts (verified):
+  - `components/AuthProvider.tsx` exposes `doEncrypt(payloads,{policy})`, `doDecrypt`, `initializeTideRequest`, `approveTideRequests`, `executeTideRequest`, `tokenRoles`, `getToken`.
+  - Policy lifecycle code is at `app/home/page.tsx:725-854` (Create → Approve → Commit) and encrypt/decrypt at `:890-934`.
+  - `lib/database/policyDb.ts:98` keys committed policies by `modelIds[0]`, so each commit OVERWRITES the last. Re-key by label.
+  - `app/api/policies/route.ts` has an unauthenticated DELETE. Remove it.
+  - The upstream contract `lib/forsetiContract.ts` is fail-open (null role ⇒ Allow; an unparseable lock is ignored) and reads tags from batch item 0 only.
+- Reuse the fail-closed contract draft `contracts/SealedVoicePolicy.cs` (adapted from SealedBid). Add `[PolicyParam] RequireTimeLock` (int). Only when it is 1 must a decrypt carry a valid `DecryptTimeLock:{epoch}` tag that has passed. Export it as the contract string in `lib/forsetiContract.ts`. Freeze the contract before policies are committed, because the contract ID changes on every edit.
+- Three policies, all `EncryptionRealmRole=student`: `investigator` (Decrypt=investigator), `guardian` (Decrypt=identity-guardian), `council` (Decrypt=council, RequireTimeLock=1). Use one `doEncrypt` call per envelope. Store each envelope's ciphertext and tags, and pass the tags back unchanged on decrypt.
+- `POST /api/reports` must accept requests **without** an Authorization header. It must reject plaintext (keys like description/fullName/studentId, non-base64 ciphertext) and store ciphertext only. `GET` requires a token verified with `lib/verifyToken.ts` (`verifyTideToken`, `requireRole`) and one of investigator / identity-guardian / council. Copy the route pattern from `/home/towfienes/orca/projects/RMIT_HACKATHON/c2/app/api/committee/open/route.ts`. Set `export const runtime = "nodejs"`.
+- QEA: `POST {auth}/admin/realms/forseti-test/users/{id}/role-mappings/realm` with the caller's admin token returns **202** (change request parked) once the realm has more than one admin. Implement `/api/admin/grant-role`, which proxies with the caller's own bearer token and returns status + body verbatim. See `init/tcinit.sh` (~l.420–600) for endpoints and the change-request drain logic.
+- `scripts/invite-user.sh <username> <role...>`: create the realm user, assign realm roles while the realm is still single-admin (auto-approve PENDING change requests like tcinit does), then print the Tide invite link. Use the same "Generating invite link" call as tcinit.
+- `lib/vault/tide.ts`: implement the `Vault` interface in `lib/vault/types.ts` (do NOT change types.ts without asking the lead) as a hook `useTideVault()` built on `useAuth()`. Then make `useVault()` in `lib/vault/index.ts` return it when `NEXT_PUBLIC_VAULT=tide`. Return `{ok:false, reason, message}` with the **exact** ORK error text on denials. Detect time lock with `/Time lock/`.
+- Use the `tide-pack` MCP (`tide_choose_playbook` → `tide_playbook`) before guessing any TideCloak API. Use the skills `security-review` and `tdd-workflow`. Add `node --test` unit tests in `tests/` for the policy store (3 labels coexist) and for report validation (plaintext rejected, no-auth POST accepted, GET without token = 401).
+- Verify before every push: `npm test`, `npx tsc --noEmit -p .`, `npm run build`. Use conventional commits on `feat/tide-core` and push often. Open a draft PR to `main` early. Report blockers to the lead immediately instead of working around them silently.
