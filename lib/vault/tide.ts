@@ -6,6 +6,7 @@ import { IAMService } from "@tidecloak/js";
 import { useAuth } from "@/hooks/useAuth";
 import { base64ToBytes } from "@/lib/tideSerialization";
 import { raceForcedRelogin, inStep } from "@/lib/forcedRelogin";
+import { parseOpened } from "@/lib/envelopeShape";
 import { ENVELOPE_LABEL, envelopeTags, type PolicyLabel } from "@/lib/policies/labels";
 import type {
   EnvelopeKind, OpenResult, Receipt, ReportDraft, ReportRecord, ReporterIdentity, Role,
@@ -115,7 +116,9 @@ function buildTideVault(ref: { current: AuthCtx }): TideVault {
     try {
       const [out] = await raceForcedRelogin(A().doDecrypt([{ encrypted: env.ciphertext, tags: env.tags }], policy));
       const text = typeof out === "string" ? out : new TextDecoder().decode(out);
-      return { ok: true, value: JSON.parse(text) as T };
+      const parsed = parseOpened(kind, text);
+      if (!parsed.ok) console.warn(`[vault] ${kind} decrypt returned no sealed data`, typeof out, text.slice(0, 80));
+      return parsed as OpenResult<T>;
     } catch (e: any) {
       const message = msgOf(e);
       return { ok: false, reason: classifyDenial(message), message };

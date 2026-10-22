@@ -23,7 +23,7 @@ Mai receives a pseudonymous receipt. Inspector Lan reads the allegation without 
 ### 4. Why TideCloak matters
 Forseti policies on Tide's ORK network decide decryption, not our server. Role changes go through TideCloak QEA approval requests, so an application admin cannot silently self-grant.
 
-Live-verified: TideCloak login for 4 personas, Tide-issued roles, 3 Forseti policies committed via the Tide enclave, QEA pending requests. Not yet run live end-to-end: seal/decrypt (network).
+Live-verified (22 Oct): TideCloak login for 4 personas; Tide-issued roles; 3 Forseti policies committed via the Tide enclave; a report sealed in Mai's browser through 5 Tide ORKs, stored as ciphertext; Inspector Lan decrypted its content; QEA left role requests pending. Not yet verified live: council time lock, 2-of-3 quorum (one admin today).
 
 ![Four-layer architecture and insider blocks](docs/architecture.png)
 
@@ -82,7 +82,7 @@ See [the detailed live setup and four-account mapping](docs/SETUP-LIVE.md). The 
 - The demo targets the **staging ORK network, t=3, n=5**; this is not a production deployment.
 - The browser is the trust boundary. A compromised browser, extension or server-delivered JavaScript can capture plaintext before sealing or after opening.
 - Mock mode stores plaintext locally and its digest is a placeholder, not a cryptographic integrity proof. Do not enter real reports.
-- Bearer-token replay and DPoP proof replay need separate controls; see [attack vectors](docs/ATTACK-VECTORS.md). Tide-issued roles and pending QEA requests were observed live; decrypt-role/tag enforcement, council timing and completed quorum approval were not verified end to end.
+- Bearer-token replay and DPoP proof replay need separate controls; see [attack vectors](docs/ATTACK-VECTORS.md). Live: Tide-issued roles, pending QEA requests, browser sealing through Tide ORKs and investigator decryption of content. Not verified end to end: identity denial for every non-guardian role, council timing and completed 2-of-3 quorum approval.
 - A one-admin realm can approve its own pending requests; 2-of-3 requires three distinct admins and committed grants. A guardian can disclose identities they legitimately open; colluding administrators and unavailable ORKs remain threats.
 
 ## Credits
