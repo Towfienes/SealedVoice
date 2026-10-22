@@ -5,6 +5,7 @@ import { IAMService } from "@tidecloak/js";
 import { Models } from "@tideorg/js";
 const BaseTideRequest = Models.BaseTideRequest;
 import { initTcData } from "@/lib/tidecloakConfig";
+import { installReloginGuard, checkIdentityChange, currentUsername } from "@/lib/tideSession";
 
 export enum Status {
     approved = "approved",
@@ -64,6 +65,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const [vuid, setVuid] = useState<string>("");
     const [userId, setUserId] = useState<string>("");
     const [tokenRoles, setTokenRoles] = useState<string[]>([]);
+    const [notice, setNotice] = useState<string | null>(null);
 
     useEffect(() => {
         // Mock vault (the default) never talks to TideCloak: skip init so it does not log an init error.
@@ -92,6 +94,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 setIsLoading(false);
 
                 if (authenticated) {
+                    installReloginGuard((message) => setNotice(message));
+                    const changed = checkIdentityChange();
+                    if (changed) {
+                        setNotice(`Signed-in account changed from '${changed.from}' to '${changed.to}'. ` +
+                            `If you did not do this, the Tide/SSO session in this browser profile belongs to someone else: sign out and sign in as the intended persona.`);
+                    }
                     const vuidFromToken = IAMService.getValueFromIDToken("vuid");
                     setVuid(vuidFromToken ?? "");
                     const subFromToken = IAMService.getValueFromToken("sub");
@@ -190,6 +198,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             doEncrypt, doDecrypt,
             doDraftEncryption, doCommitEncryption, doDraftDecryption, doCommitDecryption
         }}>
+            {notice && (
+                <div role="alert" style={{ position: "fixed", top: 0, left: 0, right: 0, zIndex: 9999, padding: "10px 16px", background: "#7a1d1d", color: "#fff", fontSize: 14, display: "flex", gap: 12, alignItems: "center", flexWrap: "wrap" }}>
+                    <span style={{ flex: 1, minWidth: 240 }}>{notice} <small>(signed in as {currentUsername() || "?"})</small></span>
+                    <button onClick={() => { setNotice(null); IAMService.doLogout(); }}>Sign out</button>
+                    <button onClick={() => setNotice(null)}>Dismiss</button>
+                </div>
+            )}
             {children}
         </AuthContext.Provider>
     );

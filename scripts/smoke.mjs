@@ -6,7 +6,7 @@ import { existsSync } from "node:fs";
 
 const BASE = process.env.BASE ?? "http://localhost:3000";
 const exe = process.env.CHROMIUM ?? ["/usr/bin/chromium", "/usr/bin/google-chrome"].find(existsSync);
-const PAGES = ["/", "/report", "/investigator", "/guardian", "/council", "/dean", "/how-it-works", "/admin/policies"];
+const PAGES = ["/", "/report", "/investigator", "/guardian", "/council", "/dean", "/how-it-works", "/admin/policies", "/admin/lab"];
 const FATAL = /Maximum update depth|Too many re-renders|Hydration failed/i;
 
 const browser = await chromium.launch({ headless: true, ...(exe ? { executablePath: exe } : {}) });
