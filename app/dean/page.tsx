@@ -9,6 +9,8 @@ import { Denial, Pending, SealIcon, SimulatedBadge } from '@/components/ui/Callo
 import { DeskGate } from '@/components/ui/DeskGate'
 import { BusyLabel } from '@/components/ui/Spinner'
 import { fmtTime, shorten } from '@/components/ui/format'
+import { useAuth } from '@/hooks/useAuth'
+import { describeQuorum, type Quorum } from '@/lib/quorum'
 
 type Out<T> = { kind: 'idle' } | { kind: 'done'; value: T }
 
@@ -52,6 +54,31 @@ export default function DeanPage() {
     useEffect(() => {
         if (reports?.length && !reports.some((r) => r.id === targetId)) setTargetId(reports[0].id)
     }, [reports, targetId])
+
+    // Real quorum of the live realm (tide mode only). Never claim 2-of-3 unless the realm really has 3 admins.
+    const auth = useAuth()
+    const [quorum, setQuorum] = useState<Quorum | null>(null)
+    const [quorumErr, setQuorumErr] = useState<string>('')
+    useEffect(() => {
+        if (vault.mode !== 'tide' || !auth.isAuthenticated) return
+        let live = true
+        ;(async () => {
+            try {
+                const res = await fetch('/api/admin/quorum', { headers: { Authorization: `Bearer ${await auth.getToken()}` } })
+                const body = await res.json().catch(() => ({}))
+                if (!live) return
+                if (res.ok) setQuorum(body as Quorum)
+                else setQuorumErr(`HTTP ${res.status} ${body.error ?? ''}`.trim())
+            } catch (e) { if (live) setQuorumErr(e instanceof Error ? e.message : String(e)) }
+        })()
+        return () => { live = false }
+    }, [vault.mode, auth.isAuthenticated]) // eslint-disable-line react-hooks/exhaustive-deps
+    const quorumNote = vault.mode !== 'tide'
+        ? 'SIMULATED: the mock vault pretends the realm has 3 admins and a 2-of-3 quorum.'
+        : quorum ? describeQuorum(quorum)
+        : quorumErr ? `Live quorum could not be read (${quorumErr}). Do not assume 2-of-3.` : 'Reading the live quorum…'
+    const pendingLabel = vault.mode !== 'tide' ? 'Pending: 2 of 3 admins (simulated)'
+        : quorum ? `Pending: ${quorum.threshold} of ${quorum.admins} admin${quorum.admins === 1 ? '' : 's'}` : 'Pending: quorum approval'
 
     const target = reports?.find((r) => r.id === targetId)
     const noReport = !target
@@ -122,8 +149,9 @@ export default function DeanPage() {
 
                 <Attack n={3} error={errs[3]} title="Add me as investigator" sub="Self-grant the role that can read the content" busy={busy === 3} disabled={false}
                     onRun={() => run(3, async () => { setGrant({ kind: 'done', value: await vault.requestRole(vault.mode === 'tide' ? 'admin' : 'dr.hung', 'investigator') }) })}>
+                    <p className="sv-hint" role="note">{quorumNote}</p>
                     <Result r={grant} render={(res) => res.status === 'pending'
-                        ? <Pending httpStatus={res.httpStatus} message={res.message} />
+                        ? <Pending httpStatus={res.httpStatus} message={res.message} label={pendingLabel} />
                         : res.status === 'error'
                             ? <Denial reason="error" message={res.message} />
                             : <div className="sv-granted">Role applied (HTTP {res.httpStatus}): {res.message}</div>} />

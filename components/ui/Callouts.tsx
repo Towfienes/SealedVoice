@@ -61,12 +61,12 @@ export function Denial({ title, reason, message, label }: { title?: string; reas
   );
 }
 
-export function Pending({ httpStatus, message }: { httpStatus: number; message: string }) {
+export function Pending({ httpStatus, message, label }: { httpStatus: number; message: string; label?: string }) {
   return (
     <div className="sv-verdict pending" role="status">
       <div className="sv-verdict-band">
         <span className="sv-http">HTTP {httpStatus}</span>
-        <span>Pending: 2 of 3 admins</span>
+        <span>{label ?? 'Pending: quorum approval'}</span>
       </div>
       <div className="sv-verdict-body">
         <strong>Requested, not granted</strong>

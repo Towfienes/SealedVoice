@@ -20,7 +20,6 @@
     "asgard-tide": "^0.14.20",
     "better-sqlite3": "^12.11.1",
     "heimdall-tide": "^0.14.41",
-    "highlight.js": "^11.11.1",
     "next": "16.x",
     "react": "19.x",
     "react-dom": "19.x"
