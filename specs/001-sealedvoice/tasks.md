@@ -34,4 +34,4 @@ Format: `ID [stream] [P = parallel-safe] task · files · done when`. Tick `[x]`
 ## Ship (15:45–17:40)
 - [ ] T50 [All] Record scenes (one Chrome profile per persona), edit, `ffmpeg` to <100 MB, `Video.mp4` at root
 - [ ] T51 [Codex] Fresh clone on another machine → README Setup works; `bash scripts/wordcount.sh` ≤ 300
-- [ ] T52 [Lead] Tag `v1.0-submission`, confirm the repo is public and the video plays, submit the Google Form. No pushes afterwards.
+- [ ] T52 [Lead] Tag `v1.0-submission`, confirm the repo is public and the video plays, submit the Google Form https://forms.gle/HRHYjnqB86j1LFS97 with group name **RMIT_SGS_Fprinciples_C2** and the repo URL https://github.com/Towfienes/SealedVoice. No pushes afterwards.
