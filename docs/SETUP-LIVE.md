@@ -4,6 +4,19 @@ For a fresh Linux/macOS machine. Needs: Docker, Node >= 20.9, `curl`, `jq`, `sql
 Order matters: **assign every role before adding admins #2 and #3.** After that every realm change is a quorum change request.
 Ports: the app must run on **:3000** (Tide login only redirects there). TideCloak is on :8080.
 
+## Live verification status (lead, 22 Oct 2026, 15:32 VN)
+
+**Verified live:**
+- TideCloak login for the 4 personas (admin, mai, council, minh).
+- Realm roles (student, investigator, identity-guardian, council).
+- The 3 Forseti policies committed via the enclave (investigator, guardian, council).
+- QEA change requests pending (role grants are parked as change requests).
+
+**NOT yet verified live:**
+- Seal and decrypt end-to-end (Mai seals, Inspector Lan reads, the council time lock before and after). The hotspot DNS to `sork1.tideprotocol.com` was flaky, so the ORK calls could not be completed.
+
+**Also not run live by WT-A (code is built and unit-tested only):** `setup-personas.sh admins`, `/api/admin/quorum`, `/admin/lab` (whether the time lock is bound to the ciphertext is unanswered), the 409 on a duplicate policy decision, and the re-login banner. Until `setup-personas.sh admins` has been run and committed, the realm has **one** admin: Dr. Hung alone is the quorum, so the "2 of 3" guarantee does not exist yet. The `/dean` card reads the real admin count and says so.
+
 Versions that matter: the app uses the Tide SDKs **0.14** (`@tidecloak/js`, `@tideorg/js`, `heimdall-tide`, `asgard-tide`). The upstream quickstart pins 0.13.21, which cannot parse the v4 admin policy that the current `tidecloak-stg-dev` image exports (`Unknown policy version: 4`). Policies are therefore created as **v4** (`lib/policies/flow.ts`). Do not downgrade the SDKs.
 
 Status of this document: written by WT-A from the repo scripts and the AGENTS.md rules. **WT-A did not run any step of it on a clean machine.** Steps that most need a first-run check: `npm run init` (step 2), the admin #2/#3 snippet (step 7) and `scripts/invite-user.sh`. If something fails, copy the exact error text and report it.

@@ -47,7 +47,7 @@ export default function HowItWorks() {
                     <h3>3. TideCloak</h3>
                     <ul>
                         <li>Realm roles: student, investigator, identity-guardian, council</li>
-                        <li>Role changes need 2 of 3 admins</li>
+                        <li>Role changes go to a quorum of admins (2 of 3 once admins #2 and #3 are added)</li>
                     </ul>
                 </div>
                 <div className="sv-arrow">decrypt request</div>

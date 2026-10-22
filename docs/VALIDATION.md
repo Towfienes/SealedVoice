@@ -10,6 +10,16 @@ Initial baseline: `553eae6`. Current integration baseline: `358b364` (`main`, 22
 | T42 | Fresh-context, report-only localhost review plus post-integration source reassessment. | [Findings](RED-TEAM-FINDINGS.md) preserve history and distinguish source fixes from outstanding batch/tag and DPoP gaps. Real ORK/QEA behavior remains untested. |
 | T51 | Isolated remote clone of `docs/codex` at `0998890`; followed the README's install/test/build/mock-browser path. | Install, **41/41 unit tests**, build, **12 browser tests (49.4s)** and 239-word check all pass. Checkout stays clean. Genuine Tide enrollment/login validation remains pending. |
 
+## Live Tide status (lead, 22 Oct 2026, 15:32 VN)
+
+**Verified live:** TideCloak login for 4 personas; realm roles; 3 Forseti policies committed via the enclave; QEA change requests pending.
+
+**NOT yet verified live:** seal/decrypt end-to-end (hotspot DNS to `sork1.tideprotocol.com` was flaky). Everything that depends on a real ORK answer is therefore unverified: the sealed report, investigator and guardian denial text, council time lock before/after unlock, and whether the time lock is bound to the ciphertext (`/admin/lab`).
+
+**Quorum caveat:** with one realm admin the threshold is 1, so Dr. Hung could approve a parked role grant alone. The 2-of-3 guarantee exists only after `bash scripts/setup-personas.sh admins` is run and both grants are committed. The `/dean` self-grant card now reads the live admin count (`/api/admin/quorum`) and states the real threshold. In mock mode it says SIMULATED.
+
+Code checks on `feat/tide-done` (WT-A, no live Tide): `npm test` 51 pass, `npx tsc --noEmit -p .` clean, `npm run build` clean, `npm run smoke` against a local tide-mode server passes. These do not touch the ORKs.
+
 ## Current validation
 
 - `npm test`: **41 tests, 41 pass, 0 fail**.
