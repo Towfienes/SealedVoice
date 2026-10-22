@@ -1,6 +1,8 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  // Worktrees live under sv-wt/ inside this folder; pin the tracing root to the repo.
+  outputFileTracingRoot: __dirname,
   webpack: (config) => {
     // Treat missing re-exports as warnings instead of errors.
     // @tidecloak/js re-exports symbols from heimdall-tide that the local
