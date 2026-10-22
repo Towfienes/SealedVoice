@@ -1,15 +1,5 @@
 # Codex validation status
 
-Initial baseline: `553eae6`. Current integration baseline: `358b364` (`main`, 22 October 2026), with Codex docs/tests on `docs/codex` ([PR #3](https://github.com/Towfienes/SealedVoice/pull/3)). Local environment: macOS arm64, Node v24.5.0, npm 11.6.4, installed Google Chrome. This record is not live Tide security certification.
-
-| Task | Work delivered | Verification / remaining work |
-|---|---|---|
-| T20 | README badge and original sentence preserved; five judging sections, Setup, Limits and Credits written. | `bash scripts/wordcount.sh`: **239** words; below 300. Setup distinguishes mock behavior from unverified live integration. |
-| T21 | Two-minute English narration and per-persona shot list; trust and attack documents adapted to reporter/investigator/guardian/council. | Four timed sections total 120 seconds; 266 narration words. Recording is pending; no `Video.mp4` has been produced. |
-| T22 | Student/investigator/report fixtures; test-runner fix; Playwright vault and actual UI workflows for US1–US5. | **41 unit tests and 12 browser tests pass, 0 fail** after integration. App and test TypeScript checks pass; production build passes. |
-| T42 | Fresh-context, report-only localhost review plus post-integration source reassessment. | [Findings](RED-TEAM-FINDINGS.md) preserve history and distinguish source fixes from outstanding batch/tag and DPoP gaps. Real ORK/QEA behavior remains untested. |
-| T51 | Isolated remote clone of `docs/codex` at `0998890`; followed the README's install/test/build/mock-browser path. | Install, **41/41 unit tests**, build, **12 browser tests (49.4s)** and 239-word check all pass. Checkout stays clean. Genuine Tide enrollment/login validation remains pending. |
-
 ## Live Tide status (lead, 22 Oct 2026, 15:32 VN)
 
 **Verified live:** TideCloak login for 4 personas; realm roles; 3 Forseti policies committed via the enclave; QEA change requests pending.
@@ -20,7 +10,39 @@ Initial baseline: `553eae6`. Current integration baseline: `358b364` (`main`, 22
 
 Code checks on `feat/tide-done` (WT-A, no live Tide): `npm test` 51 pass, `npx tsc --noEmit -p .` clean, `npm run build` clean, `npm run smoke` against a local tide-mode server passes. These do not touch the ORKs.
 
-## Current validation
+## Final documentation and fresh-clone check (22 Oct 2026)
+
+Application baseline: `105cd77` (includes merged PRs #6, #7, #8, #9 and #10). Cloned remote `docs/final` into an independent temporary directory on macOS arm64, Node v24.5.0 / npm 11.6.4, then updated it from the remote branch after the latest main integration. No `node_modules`, `.env`, private Tide configuration or data was copied from the working checkout. Selecting the unmerged PR branch is the only clone-command difference from README Setup.
+
+| Documented check | Observed result |
+|---|---|
+| `npm install` | Exit 0; final dependency refresh audited 72 packages. npm reported six existing advisories (1 moderate, 4 high, 1 critical); no automatic upgrades were applied. |
+| `npm test` | **52 tests, 52 pass, 0 fail**, at `bf805e5`. |
+| `npm run build` | **Exit 0**, 20/20 page generation, at `bf805e5`. |
+| `NEXT_PUBLIC_VAULT=mock npm run dev` | Starts successfully. Chrome observed home/report readiness, visible SIMULATED label and `/icon.svg` HTTP 200; no page errors or Tide-adapter requests. No Docker or Tide account/configuration was needed. Server stopped afterward. |
+| `PLAYWRIGHT_CHANNEL=chrome npm run test:e2e` | **12 passed (32.1s)** at `a26aa00`, zero retries. Includes the real form/receipt, Lan/Minh separation, Hung's four attempts and council before/after mock time. Test server stopped afterward. |
+| Explicit strict TypeScript check of `e2e/*.ts` and `playwright.config.ts` | **Exit 0** after aligning the attack-control locators. |
+| `bash scripts/wordcount.sh` | **271**, below 300; README embeds `docs/architecture.png`. |
+| Video-script audit | **14 contiguous slots, 120 seconds, 239 narration words**, all six existing PNG title cards referenced. Recording/export remains pending. |
+| `python3 docs/brand/verify_assets.py` | **13 SVGs / 8 PNGs pass**: outlined lettering, no external resources, correct raster dimensions. |
+
+The first two browser runs exposed old US4 labels: attack buttons are now “Run attack 1–4” and the result says “Requested, not granted”. Locators now use each named attack region and its actual button; the mock denial, pending-role and post-request access assertions remain. No application behavior, timeout or retry setting was changed. The recording script uses the same current labels. Setup docs also use a consistent Node requirement and put policy commits before admins #2/#3. The package has no lint script; `git diff --check` passes.
+
+This fresh-clone result verifies the **mock Setup path**, not interactive Tide enrollment or live cryptographic enforcement. Live status above is supplied by the lead; Codex did not reproduce it on this machine. The earlier records below are historical and do not supersede this final snapshot or the live boundary above.
+
+## Earlier Codex delivery record (historical)
+
+Initial baseline: `553eae6`. Current integration baseline: `358b364` (`main`, 22 October 2026), with Codex docs/tests on `docs/codex` ([PR #3](https://github.com/Towfienes/SealedVoice/pull/3)). Local environment: macOS arm64, Node v24.5.0, npm 11.6.4, installed Google Chrome. This record is not live Tide security certification.
+
+| Task | Work delivered | Verification / remaining work |
+|---|---|---|
+| T20 | README badge and original sentence preserved; five judging sections, Setup, Limits and Credits written. | `bash scripts/wordcount.sh`: **239** words; below 300. Setup distinguishes mock behavior from unverified live integration. |
+| T21 | Two-minute English narration and per-persona shot list; trust and attack documents adapted to reporter/investigator/guardian/council. | Four timed sections total 120 seconds; 266 narration words. Recording is pending; no `Video.mp4` has been produced. |
+| T22 | Student/investigator/report fixtures; test-runner fix; Playwright vault and actual UI workflows for US1–US5. | **41 unit tests and 12 browser tests pass, 0 fail** after integration. App and test TypeScript checks pass; production build passes. |
+| T42 | Fresh-context, report-only localhost review plus post-integration source reassessment. | [Findings](RED-TEAM-FINDINGS.md) preserve history and distinguish source fixes from outstanding batch/tag and DPoP gaps. Real ORK/QEA behavior remains untested. |
+| T51 | Isolated remote clone of `docs/codex` at `0998890`; followed the README's install/test/build/mock-browser path. | Install, **41/41 unit tests**, build, **12 browser tests (49.4s)** and 239-word check all pass. Checkout stays clean. Genuine Tide enrollment/login validation remains pending. |
+
+## Historical validation before the final integration
 
 - `npm test`: **41 tests, 41 pass, 0 fail**.
 - `PLAYWRIGHT_CHANNEL=chrome npm run test:e2e`: **12 passed (59.0s)**, zero retries. Six vault-harness tests plus five actual UI workflows and one route/label readiness test.
@@ -30,7 +52,7 @@ Code checks on `feat/tide-done` (WT-A, no live Tide): `npm test` 51 pass, `npx t
 - `bash scripts/wordcount.sh`: **239**, below 300.
 - GitHub's build check for code snapshot `0998890`: **success** ([run](https://github.com/Towfienes/SealedVoice/actions/runs/39741325096)). The existing workflow runs build/unit checks; browser results above are local.
 
-## Fresh-clone result
+## Historical fresh-clone result (PR #3)
 
 Cloned the remote PR branch with `git clone --branch docs/codex` into an independent temporary directory, without copying node_modules, data, `.env` files or config. Branch selection is the only difference from the README clone command while this PR is unmerged. Then ran its documented `npm install`, `npm test`, `npm run build` and Chrome alternative for `npm run test:e2e`. All exited zero; no retries. Installation took about five minutes on this connection. No further source changes were needed in the fresh checkout.
 
@@ -48,7 +70,7 @@ These establish unauthenticated read gates and the declared methods, not success
 
 One dev-server attempt after rebasing timed out at startup. Preserving the old `.next/dev` cache outside the checkout and rebuilding a fresh cache restored startup; the subsequent full suite passed. No app/config source was changed to suppress the issue.
 
-Mock mode still requests the missing Tide adapter through the inherited AuthProvider: `/api/tidecloakAdapter` returns 500 and the SDK attempts an undefined discovery path. The mock reporting UI works and the tests do not intercept these requests. This fresh-setup issue belongs to the AuthProvider owner; no private config was fabricated to hide it.
+At that historical revision, mock mode requested the missing Tide adapter through the inherited AuthProvider: `/api/tidecloakAdapter` returns 500 and the SDK attempts an undefined discovery path. The mock reporting UI works and the tests do not intercept these requests. This fresh-setup issue belongs to the AuthProvider owner; no private config was fabricated to hide it.
 
 ## Historical bootstrap observations
 
@@ -63,8 +85,8 @@ Mock mode still requests the missing Tide adapter through the inherited AuthProv
 - `/api/tidecloakAdapter`: 500, `{"error":"Failed to read tidecloak.json"}` on this fresh checkout. No private adapter config was fabricated.
 - `docker info`: Docker daemon unavailable on this machine. TideCloak `localhost:8080` is not running; account enrollment, terms acceptance and live policy/quorum checks were not performed.
 
-## Remaining live validation
+## Earlier remaining-live checklist (historical)
 
 The UI/Tide/API streams have integrated routes and the live vault. Codex has not changed `app/`, `lib/`, contracts, init scripts or security scripts. A mock pending status is not a real HTTP 202; a mock browser time lock is not an ORK result.
 
-The default Playwright run now passes on the integrated UI. Still required: genuine login/enrollment, committed policies, direct investigator/guardian denials, real quorum pending/commit behavior, council ORK before/after timing and the final pre-submission clone on the final revision. Keep all simulated scenes labelled and preserve the report's architectural limits.
+At that checkpoint the default Playwright run passed on the integrated UI. The then-outstanding list was: genuine login/enrollment, committed policies, direct investigator/guardian denials, real quorum pending/commit behavior, council ORK before/after timing and the final pre-submission clone on the final revision. Keep all simulated scenes labelled and preserve the report's architectural limits.
