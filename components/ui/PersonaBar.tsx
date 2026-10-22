@@ -1,5 +1,6 @@
 "use client";
 import Link from "next/link";
+import { useState } from "react";
 import { usePathname } from "next/navigation";
 import { MOCK_PERSONAS } from "@/lib/vault";
 import { LockIcon, SimulatedBadge } from "./Callouts";
@@ -23,6 +24,12 @@ export function PersonaBar() {
     ? Object.entries(MOCK_PERSONAS).find(([, p]) => p.displayName === session?.displayName)?.[0] ?? ""
     : "";
 
+  const [authError, setAuthError] = useState<string | null>(null);
+  const safe = async (fn: () => Promise<void>) => {
+    setAuthError(null);
+    try { await fn(); } catch (e) { setAuthError(e instanceof Error ? e.message : String(e)); }
+    notifySessionChange();
+  };
   const appRoles = APP_ROLES.filter((r) => session?.roles.includes(r));
 
   return (
@@ -54,10 +61,10 @@ export function PersonaBar() {
           ) : ready && session?.signedIn ? (
             <>
               <span className="sv-who-name">{session.displayName || "Signed in"}</span>
-              <button className="sv-btn sv-btn-quiet" onClick={async () => { await vault.signOut(); notifySessionChange(); }}>Sign out</button>
+              <button className="sv-btn sv-btn-quiet" onClick={() => void safe(() => vault.signOut())}>Sign out</button>
             </>
           ) : (
-            <button className="sv-btn sv-btn-quiet" disabled={!ready} onClick={async () => { await vault.signIn(); notifySessionChange(); }}>Sign in</button>
+            <button className="sv-btn sv-btn-quiet" disabled={!ready} onClick={() => void safe(() => vault.signIn())}>Sign in</button>
           )}
         </div>
       </div>
@@ -67,8 +74,8 @@ export function PersonaBar() {
           <Link key={n.href} href={n.href} aria-current={path === n.href ? "page" : undefined}>{n.label}</Link>
         ))}
       </nav>
-      {ready && session?.signedIn && (
-        <div className="sv-roles">
+      <div className="sv-roles">
+        {ready && session?.signedIn && (<>
           <span className="sv-roles-label">Roles</span>
           {appRoles.map((r) => <span key={r} className="sv-badge sv-badge-role">{r}</span>)}
           {session.isRealmAdmin && <span className="sv-badge sv-badge-admin">Realm admin</span>}
@@ -77,8 +84,9 @@ export function PersonaBar() {
             <summary>Token roles (debug)</summary>
             <p>{session.roles.length ? session.roles.map((r) => <code key={r}>{r}</code>) : <em>none</em>}</p>
           </details>
-        </div>
-      )}
+        </>)}
+        {authError && <span className="sv-auth-error" role="alert">{authError}</span>}
+      </div>
     </header>
   );
 }
